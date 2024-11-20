@@ -64,6 +64,12 @@ public class QuestionController {
         return questionService.saveQuestion(question);
     }
 
+    // Create multiple questions
+    @PostMapping("/batch")
+    public List<Question> createQuestions(@RequestBody List<Question> questions) {
+        return questionService.saveQuestions(questions);
+    }
+
     // Update an existing question by ID
     @PutMapping("/{id}")
     public Optional<Question> updateQuestion(

@@ -53,6 +53,12 @@ public class QuestionService {
         return questionRepository.save(question);
     }
 
+    // Save multiple questions
+    public List<Question> saveQuestions(List<Question> questions) {
+        return questionRepository.saveAll(questions);
+    }
+
+
     // Delete a question by ID
     public void deleteQuestionById(Long id) {
         questionRepository.deleteById(id);
