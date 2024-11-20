@@ -19,6 +19,11 @@ public class QuizService {
         this.quizRepository = quizRepository;
     }
 
+    //Get all quizzes
+    public List<Quiz> getAllQuiz() {
+        return quizRepository.findAll();
+    }
+
     public Optional<Quiz> getQuizById(Long quizId) {
         return quizRepository.findByQuizId(quizId);
     }

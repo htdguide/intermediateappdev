@@ -1,65 +1,66 @@
 package com.quizapp.quizApp.services;
 
 import com.quizapp.quizApp.model.Question;
+import com.quizapp.quizApp.repositories.QuestionRepository;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Optional;
 
-@RestController
-@RequestMapping("/api/questions")
+@Service
 public class QuestionService {
 
-    private final QuestionService questionService;
+    private final QuestionRepository questionRepository;
 
     @Autowired
-    public QuestionService(QuestionService questionService) {
-        this.questionService = questionService;
+    public QuestionService(QuestionRepository questionRepository) {
+        this.questionRepository = questionRepository;
+    }
+
+    // Get all questions
+    public List<Question> getAllQuestions() {
+        return questionRepository.findAll();
     }
 
     // Get a question by ID
-    @GetMapping("/{id}")
-    public Optional<Question> getQuestionById(@PathVariable Long id) {
-        return questionService.getQuestionById(id);
+    public Optional<Question> getQuestionById(Long id) {
+        return questionRepository.findById(id);
     }
 
     // Get questions by difficulty
-    @GetMapping("/difficulty/{difficulty}")
-    public List<Question> getQuestionsByDifficulty(@PathVariable String difficulty) {
-        return questionService.getQuestionsByDifficulty(difficulty);
+    public List<Question> getQuestionsByDifficulty(String difficulty) {
+        return questionRepository.findByDifficulty(difficulty);
     }
 
     // Get questions by category
-    @GetMapping("/category/{category}")
-    public List<Question> getQuestionsByCategory(@PathVariable String category) {
-        return questionService.getQuestionsByCategory(category);
+    public List<Question> getQuestionsByCategory(String category) {
+        return questionRepository.findByCategory(category);
     }
 
     // Search questions by keyword
-    @GetMapping("/search")
-    public List<Question> searchQuestionsByKeyword(@RequestParam String keyword) {
-        return questionService.searchQuestionsByKeyword(keyword);
+    public List<Question> searchQuestionsByKeyword(String keyword) {
+        return questionRepository.findByTextContainingIgnoreCase(keyword);
     }
 
     // Get a question by ID, difficulty, and category
-    @GetMapping("/{id}/details")
-    public Optional<Question> getQuestionByIdDifficultyAndCategory(
-            @PathVariable Long id,
-            @RequestParam String difficulty,
-            @RequestParam String category) {
-        return questionService.getQuestionByIdDifficultyAndCategory(id, difficulty, category);
+    public Optional<Question> getQuestionByIdDifficultyAndCategory(Long id, String difficulty, String category) {
+        return questionRepository.findByIdAndDifficultyAndCategory(id, difficulty, category);
     }
 
-    // Create or update a question
-    @PostMapping
-    public Question saveQuestion(@RequestBody Question question) {
-        return questionService.saveQuestion(question);
+    // Save or update a question
+    public Question saveQuestion(Question question) {
+        return questionRepository.save(question);
     }
+
+    // Save multiple questions
+    public List<Question> saveQuestions(List<Question> questions) {
+        return questionRepository.saveAll(questions);
+    }
+
 
     // Delete a question by ID
-    @DeleteMapping("/{id}")
-    public void deleteQuestionById(@PathVariable Long id) {
-        questionService.deleteQuestionById(id);
+    public void deleteQuestionById(Long id) {
+        questionRepository.deleteById(id);
     }
 }

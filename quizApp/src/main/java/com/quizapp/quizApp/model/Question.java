@@ -3,6 +3,8 @@ package com.quizapp.quizApp.model;
 import jakarta.persistence.*;
 import java.io.Serializable;
 
+import java.util.List;
+
 @Entity
 @Table(name = "Question")
 public class Question implements Serializable {
@@ -25,12 +27,14 @@ public class Question implements Serializable {
     @Column(name = "answer", nullable = false)
     private String answer;
 
-    @Column(name = "incorrect_answers", nullable = false, columnDefinition = "JSON")
-    private String incorrectAnswers;
+    @ElementCollection // To store the list in a relational database
+    @CollectionTable(name = "question_incorrect_answers", joinColumns = @JoinColumn(name = "question_id"))
+    @Column(name = "incorrect_answer")
+    private List<String> incorrectAnswers;
 
     public Question() {}
 
-    public Question(Difficulty difficulty, String category, String text, String answer, String incorrectAnswers) {
+    public Question(Difficulty difficulty, String category, String text, String answer, List<String> incorrectAnswers) {
         this.difficulty = difficulty;
         this.category = category;
         this.text = text;
@@ -38,7 +42,7 @@ public class Question implements Serializable {
         this.incorrectAnswers = incorrectAnswers;
     }
 
-    // Getter and Setter for questionId
+    // Getters and Setters
     public Long getQuestionId() {
         return questionId;
     }
@@ -79,11 +83,11 @@ public class Question implements Serializable {
         this.answer = answer;
     }
 
-    public String getIncorrectAnswers() {
+    public List<String> getIncorrectAnswers() {
         return incorrectAnswers;
     }
 
-    public void setIncorrectAnswers(String incorrectAnswers) {
+    public void setIncorrectAnswers(List<String> incorrectAnswers) {
         this.incorrectAnswers = incorrectAnswers;
     }
 }
