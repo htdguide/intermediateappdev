@@ -18,6 +18,11 @@ public class QuestionService {
         this.questionRepository = questionRepository;
     }
 
+    // Get all questions
+    public List<Question> getAllQuestions() {
+        return questionRepository.findAll();
+    }
+
     // Get a question by ID
     public Optional<Question> getQuestionById(Long id) {
         return questionRepository.findById(id);
