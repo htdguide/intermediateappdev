@@ -2,6 +2,7 @@ package com.quizapp.quizApp.services;
 
 import com.quizapp.quizApp.model.QuizQuestion;
 import com.quizapp.quizApp.repositories.QuizQuestionRepository;
+import java.util.Optional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -16,6 +17,17 @@ public class QuizQuestionService {
     public QuizQuestionService(QuizQuestionRepository quizQuestionRepository) {
         this.quizQuestionRepository = quizQuestionRepository;
     }
+
+    // Get all QuizQuestion mappings
+    public List<QuizQuestion> getAllQuizQuestions() {
+        return quizQuestionRepository.findAll();
+    }
+
+    // Get a QuizQuestion by its ID
+    public Optional<QuizQuestion> getQuizQuestionById(Long quizQuestionId) {
+        return quizQuestionRepository.findById(quizQuestionId);
+    }
+
 
     // Get all questions for a specific quiz by quizId
     public List<QuizQuestion> getQuestionsByQuizId(Long quizId) {
@@ -46,6 +58,12 @@ public class QuizQuestionService {
     public QuizQuestion saveQuizQuestion(QuizQuestion quizQuestion) {
         return quizQuestionRepository.save(quizQuestion);
     }
+
+    // Save multiple QuizQuestion mappings
+    public List<QuizQuestion> saveQuizQuestions(List<QuizQuestion> quizQuestions) {
+        return quizQuestionRepository.saveAll(quizQuestions);
+    }
+
 
     // Delete a QuizQuestion mapping by ID
     public void deleteQuizQuestionById(Long quizQuestionId) {
