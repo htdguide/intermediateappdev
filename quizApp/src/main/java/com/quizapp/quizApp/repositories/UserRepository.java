@@ -11,14 +11,33 @@ import java.util.Optional;
 @Repository
 public interface UserRepository extends JpaRepository<User, Long> {
 
+    boolean LOGGING_ENABLED = true; // Logging flag
+
     // Find a user by email
-    Optional<User> findByEmail(String email);
+    default Optional<User> findByEmail(String email) {
+        if (LOGGING_ENABLED) {
+            System.out.println("Fetching user by email: " + email);
+        }
+        return findByEmailQuery(email);
+    }
 
     // Find a user by ID
-    Optional<User> findByUserId(Long userId);
+    default Optional<User> findByUserId(Long userId) {
+        if (LOGGING_ENABLED) {
+            System.out.println("Fetching user by ID: " + userId);
+        }
+        return findByUserIdQuery(userId);
+    }
 
     // Find a user by first name and last name combined
     @Query("SELECT u FROM User u WHERE LOWER(u.firstName) = LOWER(:firstName) AND LOWER(u.lastName) = LOWER(:lastName)")
     Optional<User> findByFirstNameAndLastName(@Param("firstName") String firstName, @Param("lastName") String lastName);
 
+    // Internal method for findByEmail query
+    @Query("SELECT u FROM User u WHERE u.email = :email")
+    Optional<User> findByEmailQuery(@Param("email") String email);
+
+    // Internal method for findByUserId query
+    @Query("SELECT u FROM User u WHERE u.userId = :userId")
+    Optional<User> findByUserIdQuery(@Param("userId") Long userId);
 }

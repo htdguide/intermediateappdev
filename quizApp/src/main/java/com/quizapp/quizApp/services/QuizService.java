@@ -3,6 +3,9 @@ package com.quizapp.quizApp.services;
 import com.quizapp.quizApp.model.Quiz;
 import com.quizapp.quizApp.repositories.QuizRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.autoconfigure.data.web.SpringDataWebProperties;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
@@ -13,51 +16,108 @@ import java.util.Optional;
 public class QuizService {
 
     private final QuizRepository quizRepository;
+    private static final boolean LOGGING_ENABLED = true;
 
     @Autowired
     public QuizService(QuizRepository quizRepository) {
         this.quizRepository = quizRepository;
     }
 
-    //Get all quizzes
-    public List<Quiz> getAllQuiz() {
+    // Get all quizzes
+    public List<Quiz> getAllQuizzes() {
+        if (LOGGING_ENABLED) System.out.println("Fetching all quizzes.");
         return quizRepository.findAll();
     }
 
+    // Get a quiz by ID
     public Optional<Quiz> getQuizById(Long quizId) {
-        return quizRepository.findByQuizId(quizId);
+        try {
+            if (LOGGING_ENABLED) System.out.println("Fetching quiz by ID: " + quizId);
+            return quizRepository.findById(quizId);
+        } catch (Exception e) {
+            if (LOGGING_ENABLED) System.err.println("Error fetching quiz: " + e.getMessage());
+            return Optional.empty();
+        }
     }
 
-    public Optional<Quiz> updateQuizById(Long quizId, Quiz updatedQuiz) {
-        return quizRepository.findByQuizId(quizId).map(existingQuiz -> {
-            existingQuiz.setTitle(updatedQuiz.getTitle());
-            existingQuiz.setStartDate(updatedQuiz.getStartDate());
-            existingQuiz.setEndDate(updatedQuiz.getEndDate());
-            return quizRepository.save(existingQuiz);
-        });
-    }
-
+    // Get quizzes by title (partial match)
     public List<Quiz> getQuizzesByTitle(String title) {
-        return quizRepository.findByTitleContaining(title);
+        try {
+            if (LOGGING_ENABLED) System.out.println("Fetching quizzes by title: " + title);
+            return quizRepository.findByTitleContaining(title);
+        } catch (Exception e) {
+            if (LOGGING_ENABLED) System.err.println("Error fetching quizzes by title: " + e.getMessage());
+            throw e;
+        }
     }
 
+    // Get quizzes starting on a specific date
     public List<Quiz> getQuizzesByStartDate(LocalDate startDate) {
-        return quizRepository.findByStartDate(startDate);
+        try {
+            if (LOGGING_ENABLED) System.out.println("Fetching quizzes by start date: " + startDate);
+            return quizRepository.findByStartDate(startDate);
+        } catch (Exception e) {
+            if (LOGGING_ENABLED) System.err.println("Error fetching quizzes by start date: " + e.getMessage());
+            throw e;
+        }
     }
 
+    // Get quizzes ending on a specific date
     public List<Quiz> getQuizzesByEndDate(LocalDate endDate) {
-        return quizRepository.findByEndDate(endDate);
+        try {
+            if (LOGGING_ENABLED) System.out.println("Fetching quizzes by end date: " + endDate);
+            return quizRepository.findByEndDate(endDate);
+        } catch (Exception e) {
+            if (LOGGING_ENABLED) System.err.println("Error fetching quizzes by end date: " + e.getMessage());
+            throw e;
+        }
     }
 
-    public List<Quiz> getQuizzesBetweenDates(LocalDate startDate, LocalDate endDate) {
-        return quizRepository.findQuizzesBetweenDates(startDate, endDate);
+    // Get quizzes starting between two dates
+    public Page<Quiz> getQuizzesBetweenDates(LocalDate startDate, LocalDate endDate, Pageable pageable) {
+        try {
+            if (LOGGING_ENABLED) System.out.println("Fetching quizzes between dates: " + startDate + " and " + endDate);
+            return quizRepository.findQuizzesBetweenDates(startDate, endDate, pageable);
+        } catch (Exception e) {
+            if (LOGGING_ENABLED) System.err.println("Error fetching quizzes between dates: " + e.getMessage());
+            throw e;
+        }
     }
 
+    // Save a single quiz
     public Quiz saveQuiz(Quiz quiz) {
-        return quizRepository.save(quiz);
+        try {
+            if (LOGGING_ENABLED) System.out.println("Saving single quiz: " + quiz.getTitle());
+            return quizRepository.save(quiz);
+        } catch (Exception e) {
+            if (LOGGING_ENABLED) System.err.println("Error saving quiz: " + e.getMessage());
+            throw e;
+        }
     }
 
+    // Update a quiz by ID
+    public Optional<Quiz> updateQuizById(Long id, Quiz updatedQuiz) {
+        try {
+            if (LOGGING_ENABLED) System.out.println("Updating quiz with ID: " + id);
+            return quizRepository.findById(id).map(existingQuiz -> {
+                existingQuiz.setTitle(updatedQuiz.getTitle());
+                existingQuiz.setStartDate(updatedQuiz.getStartDate());
+                existingQuiz.setEndDate(updatedQuiz.getEndDate());
+                return quizRepository.save(existingQuiz);
+            });
+        } catch (Exception e) {
+            if (LOGGING_ENABLED) System.err.println("Error updating quiz: " + e.getMessage());
+            throw e;
+        }
+    }
+
+    // Delete a quiz by ID
     public void deleteQuizById(Long quizId) {
-        quizRepository.deleteById(quizId);
+        try {
+            if (LOGGING_ENABLED) System.out.println("Deleting quiz by ID: " + quizId);
+            quizRepository.deleteById(quizId);
+        } catch (Exception e) {
+            if (LOGGING_ENABLED) System.err.println("Error deleting quiz: " + e.getMessage());
+        }
     }
 }

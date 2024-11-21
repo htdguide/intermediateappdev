@@ -1,11 +1,20 @@
 package com.quizapp.quizApp.model;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
+import jakarta.validation.constraints.Future;
+import jakarta.validation.constraints.FutureOrPresent;
+import jakarta.validation.constraints.Size;
 import java.io.Serializable;
 import java.time.LocalDate;
+import java.util.List;
 
 @Entity
-@Table(name = "Quiz")
+@Table(name = "Quiz", indexes = {
+        @Index(name = "idx_start_date", columnList = "start_date"),
+        @Index(name = "idx_end_date", columnList = "end_date")
+})
 public class Quiz implements Serializable {
 
     @Id
@@ -14,13 +23,20 @@ public class Quiz implements Serializable {
     private Long quizId; // Updated field name
 
     @Column(name = "title", nullable = false)
+    @Size(min = 1, max = 100, message = "Title must be between 1 and 100 characters.")
     private String title;
 
     @Column(name = "start_date", nullable = false)
+    @FutureOrPresent(message = "Start date must be today or in the future.")
     private LocalDate startDate;
 
     @Column(name = "end_date", nullable = false)
+    @Future(message = "End date must be in the future.")
     private LocalDate endDate;
+
+    @OneToMany(mappedBy = "quiz", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonBackReference  // Prevents recursion by ignoring quizQuestions during serialization
+    private List<QuizQuestion> quizQuestions;
 
     public Quiz() {}
 
@@ -30,7 +46,7 @@ public class Quiz implements Serializable {
         this.endDate = endDate;
     }
 
-    // Getter and Setter for quizId
+    // Getters and Setters
     public Long getQuizId() {
         return quizId;
     }
@@ -61,5 +77,27 @@ public class Quiz implements Serializable {
 
     public void setEndDate(LocalDate endDate) {
         this.endDate = endDate;
+    }
+
+    public List<QuizQuestion> getQuizQuestions() {
+        return quizQuestions;
+    }
+
+    public void setQuizQuestions(List<QuizQuestion> quizQuestions) {
+        this.quizQuestions = quizQuestions;
+    }
+
+    // Utility Methods
+    public boolean isActive() {
+        LocalDate today = LocalDate.now();
+        return (today.isEqual(startDate) || today.isAfter(startDate)) && today.isBefore(endDate);
+    }
+
+    @PrePersist
+    @PreUpdate
+    private void validateDates() {
+        if (endDate.isBefore(startDate)) {
+            throw new IllegalArgumentException("End date must be after the start date.");
+        }
     }
 }
