@@ -1,10 +1,20 @@
 package com.quizapp.quizApp.controller;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.quizapp.quizApp.dto.ApiResponse;
+import com.quizapp.quizApp.model.Difficulty;
 import com.quizapp.quizApp.model.Question;
 import com.quizapp.quizApp.services.QuestionService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.client.HttpClientErrorException;
+import org.springframework.web.client.RestTemplate;
+import org.springframework.web.client.RestClientException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
+
+import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 
@@ -68,6 +78,61 @@ public class QuestionController {
     @PostMapping("/batch")
     public List<Question> createQuestions(@RequestBody List<Question> questions) {
         return questionService.saveQuestions(questions);
+    }
+
+    @PostMapping("/fetch")
+    public List<Question> fetchQuestionsFromApi(@RequestParam String apiUrl) {
+        RestTemplate restTemplate = new RestTemplate();
+        ObjectMapper objectMapper = new ObjectMapper();
+
+        try {
+            // Fetch raw response once
+            String rawResponse = restTemplate.getForObject(apiUrl, String.class);
+            System.out.println("Raw API Response: " + rawResponse);
+
+            // Parse the raw JSON response into ApiResponse
+            ApiResponse apiResponse = objectMapper.readValue(rawResponse, ApiResponse.class);
+
+            if (apiResponse == null || apiResponse.getResults() == null || apiResponse.getResults().isEmpty()) {
+                throw new RuntimeException("API response is empty or null");
+            }
+
+            // Map the API data to Question objects
+            List<Question> questions = apiResponse.getResults().stream().map(apiQuestion -> {
+                Question question = new Question();
+                question.setDifficulty(
+                        Arrays.stream(Difficulty.values())
+                                .filter(d -> d.name().equalsIgnoreCase(apiQuestion.getDifficulty()))
+                                .findFirst()
+                                .orElseThrow(() -> new IllegalArgumentException("Invalid difficulty: " + apiQuestion.getDifficulty()))
+                );
+                question.setCategory(apiQuestion.getCategory());
+                question.setText(apiQuestion.getQuestion());
+                question.setAnswer(apiQuestion.getCorrectAnswer());
+                question.setIncorrectAnswers(apiQuestion.getIncorrectAnswers());
+                return question;
+            }).toList();
+
+            // Validate questions
+            questions.forEach(question -> {
+                if (question.getAnswer() == null || question.getText() == null || question.getCategory() == null) {
+                    throw new IllegalArgumentException("Required fields missing in question: " + question);
+                }
+            });
+
+            // Save the questions to the database
+            return questionService.saveQuestions(questions);
+        } catch (HttpClientErrorException e) {
+            if (e.getStatusCode() == HttpStatus.TOO_MANY_REQUESTS) {
+                throw new RuntimeException("API rate limit exceeded. Please try again later.", e);
+            } else {
+                throw new RuntimeException("API returned an error: " + e.getStatusCode(), e);
+            }
+        } catch (RestClientException e) {
+            throw new RuntimeException("Failed to fetch data from the API: " + e.getMessage(), e);
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException("Failed to parse API response: " + e.getMessage(), e);
+        }
     }
 
     // Update an existing question by ID
