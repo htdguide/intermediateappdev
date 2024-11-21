@@ -1,5 +1,7 @@
 package com.quizapp.quizApp.model;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import java.io.Serializable;
 
@@ -9,15 +11,17 @@ public class QuizQuestion implements Serializable {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "quiz_question_id") // Updated column name
-    private Long quizQuestionId; // Updated field name
+    @Column(name = "quiz_question_id")
+    private Long quizQuestionId;
 
     @ManyToOne
-    @JoinColumn(name = "quiz_id", nullable = false)
+    @JoinColumn(name = "quiz_id", nullable = false, foreignKey = @ForeignKey(name = "fk_quiz_question_quiz"))
+    @JsonManagedReference  // Ensure quiz details are included in the serialized response
     private Quiz quiz;
 
     @ManyToOne
-    @JoinColumn(name = "question_id", nullable = false)
+    @JoinColumn(name = "question_id", nullable = false, foreignKey = @ForeignKey(name = "fk_quiz_question_question"))
+    @JsonManagedReference  // Ensure question details are included in the serialized response
     private Question question;
 
     public QuizQuestion() {}
@@ -27,7 +31,7 @@ public class QuizQuestion implements Serializable {
         this.question = question;
     }
 
-    // Getter and Setter for quizQuestionId
+    // Getters and Setters
     public Long getQuizQuestionId() {
         return quizQuestionId;
     }

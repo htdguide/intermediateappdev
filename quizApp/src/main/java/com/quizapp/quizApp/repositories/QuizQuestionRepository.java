@@ -7,9 +7,12 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 public interface QuizQuestionRepository extends JpaRepository<QuizQuestion, Long> {
+
+    boolean LOGGING_ENABLED = true;
 
     // Find all questions for a specific quiz by quizId
     List<QuizQuestion> findByQuiz_QuizId(Long quizId);
@@ -25,7 +28,11 @@ public interface QuizQuestionRepository extends JpaRepository<QuizQuestion, Long
     @Query("SELECT CASE WHEN COUNT(q) > 0 THEN TRUE ELSE FALSE END FROM QuizQuestion q WHERE q.quiz.quizId = :quizId AND q.question.questionId = :questionId")
     boolean existsByQuizIdAndQuestionId(@Param("quizId") Long quizId, @Param("questionId") Long questionId);
 
-    // Get all QuizQuestion mappings for a quiz sorted by quizQuestionId (can be customized for order in quiz)
+    // Get all QuizQuestion mappings for a quiz sorted by quizQuestionId
     @Query("SELECT q FROM QuizQuestion q WHERE q.quiz.quizId = :quizId ORDER BY q.quizQuestionId ASC")
     List<QuizQuestion> findQuestionsByQuizIdSorted(@Param("quizId") Long quizId);
+
+    // Find a specific QuizQuestion by quizId and questionId
+    @Query("SELECT q FROM QuizQuestion q WHERE q.quiz.quizId = :quizId AND q.question.questionId = :questionId")
+    Optional<QuizQuestion> findByQuizIdAndQuestionId(@Param("quizId") Long quizId, @Param("questionId") Long questionId);
 }

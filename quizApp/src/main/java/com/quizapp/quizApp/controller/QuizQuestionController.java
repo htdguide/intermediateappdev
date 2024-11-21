@@ -13,6 +13,7 @@ import java.util.List;
 public class QuizQuestionController {
 
     private final QuizQuestionService quizQuestionService;
+    private static final boolean LOGGING_ENABLED = true;
 
     @Autowired
     public QuizQuestionController(QuizQuestionService quizQuestionService) {
@@ -22,43 +23,85 @@ public class QuizQuestionController {
     // Get all QuizQuestion mappings
     @GetMapping
     public List<QuizQuestion> getAllQuizQuestions() {
-        return quizQuestionService.getAllQuizQuestions();
+        try {
+            if (LOGGING_ENABLED) System.out.println("Fetching all QuizQuestions.");
+            return quizQuestionService.getAllQuizQuestions();
+        } catch (Exception e) {
+            if (LOGGING_ENABLED) System.err.println("Error fetching all QuizQuestions: " + e.getMessage());
+            throw e;
+        }
     }
 
     // Get all questions for a specific quiz by quizId
     @GetMapping("/quiz/{quizId}")
     public List<QuizQuestion> getQuestionsByQuizId(@PathVariable Long quizId) {
-        return quizQuestionService.getQuestionsByQuizId(quizId);
+        try {
+            if (LOGGING_ENABLED) System.out.println("Fetching questions for quiz ID: " + quizId);
+            return quizQuestionService.getQuestionsByQuizId(quizId);
+        } catch (Exception e) {
+            if (LOGGING_ENABLED) System.err.println("Error fetching questions for quiz ID: " + e.getMessage());
+            throw e;
+        }
     }
 
     // Get all quizzes containing a specific question by questionId
     @GetMapping("/question/{questionId}")
     public List<QuizQuestion> getQuizzesByQuestionId(@PathVariable Long questionId) {
-        return quizQuestionService.getQuizzesByQuestionId(questionId);
+        try {
+            if (LOGGING_ENABLED) System.out.println("Fetching quizzes for question ID: " + questionId);
+            return quizQuestionService.getQuizzesByQuestionId(questionId);
+        } catch (Exception e) {
+            if (LOGGING_ENABLED) System.err.println("Error fetching quizzes for question ID: " + e.getMessage());
+            throw e;
+        }
     }
 
     // Count the number of questions in a specific quiz
     @GetMapping("/quiz/{quizId}/count")
     public Long countQuestionsInQuiz(@PathVariable Long quizId) {
-        return quizQuestionService.countQuestionsInQuiz(quizId);
+        try {
+            if (LOGGING_ENABLED) System.out.println("Counting questions for quiz ID: " + quizId);
+            return quizQuestionService.countQuestionsInQuiz(quizId);
+        } catch (Exception e) {
+            if (LOGGING_ENABLED) System.err.println("Error counting questions for quiz ID: " + e.getMessage());
+            throw e;
+        }
     }
 
     // Check if a specific question is part of a specific quiz
     @GetMapping("/quiz/{quizId}/question/{questionId}/exists")
     public boolean isQuestionInQuiz(@PathVariable Long quizId, @PathVariable Long questionId) {
-        return quizQuestionService.isQuestionInQuiz(quizId, questionId);
+        try {
+            if (LOGGING_ENABLED) System.out.println("Checking if question ID: " + questionId + " is in quiz ID: " + quizId);
+            return quizQuestionService.isQuestionInQuiz(quizId, questionId);
+        } catch (Exception e) {
+            if (LOGGING_ENABLED) System.err.println("Error checking if question is in quiz: " + e.getMessage());
+            throw e;
+        }
     }
 
     // Add a new QuizQuestion mapping
     @PostMapping
     public QuizQuestion createQuizQuestion(@RequestBody QuizQuestion quizQuestion) {
-        return quizQuestionService.saveQuizQuestion(quizQuestion);
+        try {
+            if (LOGGING_ENABLED) System.out.println("Creating a new QuizQuestion.");
+            return quizQuestionService.saveQuizQuestion(quizQuestion);
+        } catch (Exception e) {
+            if (LOGGING_ENABLED) System.err.println("Error creating QuizQuestion: " + e.getMessage());
+            throw e;
+        }
     }
 
     // Add multiple QuizQuestion mappings
     @PostMapping("/batch")
     public List<QuizQuestion> createQuizQuestions(@RequestBody List<QuizQuestion> quizQuestions) {
-        return quizQuestionService.saveQuizQuestions(quizQuestions);
+        try {
+            if (LOGGING_ENABLED) System.out.println("Creating multiple QuizQuestions.");
+            return quizQuestionService.saveQuizQuestions(quizQuestions);
+        } catch (Exception e) {
+            if (LOGGING_ENABLED) System.err.println("Error creating multiple QuizQuestions: " + e.getMessage());
+            throw e;
+        }
     }
 
     // Update an existing QuizQuestion mapping
@@ -66,17 +109,29 @@ public class QuizQuestionController {
     public ResponseEntity<QuizQuestion> updateQuizQuestion(
             @PathVariable Long id,
             @RequestBody QuizQuestion updatedQuizQuestion) {
-        return quizQuestionService.getQuizQuestionById(id).map(existingQuizQuestion -> {
-            existingQuizQuestion.setQuiz(updatedQuizQuestion.getQuiz());
-            existingQuizQuestion.setQuestion(updatedQuizQuestion.getQuestion());
-            QuizQuestion savedQuizQuestion = quizQuestionService.saveQuizQuestion(existingQuizQuestion);
-            return ResponseEntity.ok(savedQuizQuestion);
-        }).orElse(ResponseEntity.notFound().build());
+        try {
+            if (LOGGING_ENABLED) System.out.println("Updating QuizQuestion with ID: " + id);
+            return quizQuestionService.getQuizQuestionById(id).map(existingQuizQuestion -> {
+                existingQuizQuestion.setQuiz(updatedQuizQuestion.getQuiz());
+                existingQuizQuestion.setQuestion(updatedQuizQuestion.getQuestion());
+                QuizQuestion savedQuizQuestion = quizQuestionService.updateQuizQuestionById(id, existingQuizQuestion);
+                return ResponseEntity.ok(savedQuizQuestion);
+            }).orElse(ResponseEntity.notFound().build());
+        } catch (Exception e) {
+            if (LOGGING_ENABLED) System.err.println("Error updating QuizQuestion: " + e.getMessage());
+            throw e;
+        }
     }
 
     // Delete a QuizQuestion mapping by ID
     @DeleteMapping("/{id}")
     public void deleteQuizQuestionById(@PathVariable Long id) {
-        quizQuestionService.deleteQuizQuestionById(id);
+        try {
+            if (LOGGING_ENABLED) System.out.println("Deleting QuizQuestion with ID: " + id);
+            quizQuestionService.deleteQuizQuestionById(id);
+        } catch (Exception e) {
+            if (LOGGING_ENABLED) System.err.println("Error deleting QuizQuestion: " + e.getMessage());
+            throw e;
+        }
     }
 }

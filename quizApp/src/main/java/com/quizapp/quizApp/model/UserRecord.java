@@ -1,5 +1,6 @@
 package com.quizapp.quizApp.model;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import jakarta.persistence.*;
 import java.io.Serializable;
 import java.time.LocalDateTime;
@@ -15,10 +16,12 @@ public class UserRecord implements Serializable {
 
     @ManyToOne
     @JoinColumn(name = "user_id", nullable = false)
+    @JsonBackReference
     private User user;
 
     @ManyToOne
     @JoinColumn(name = "quiz_id", nullable = false)
+    @JsonBackReference
     private Quiz quiz;
 
     @Column(name = "score", nullable = false)

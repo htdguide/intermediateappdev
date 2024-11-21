@@ -2,17 +2,19 @@ package com.quizapp.quizApp.model;
 
 import jakarta.persistence.*;
 import java.io.Serializable;
-
 import java.util.List;
 
 @Entity
-@Table(name = "Question")
+@Table(name = "Question", indexes = {
+        @Index(name = "idx_category", columnList = "category"),
+        @Index(name = "idx_difficulty", columnList = "difficulty")
+})
 public class Question implements Serializable {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "question_id") // Updated column name
-    private Long questionId; // Updated field name
+    @Column(name = "question_id")
+    private Long questionId;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "difficulty", nullable = false)
@@ -27,8 +29,11 @@ public class Question implements Serializable {
     @Column(name = "answer", nullable = false)
     private String answer;
 
-    @ElementCollection(fetch = FetchType.EAGER)// To store the list in a relational database
-    @CollectionTable(name = "question_incorrect_answers", joinColumns = @JoinColumn(name = "question_id"))
+    @ElementCollection(fetch = FetchType.EAGER)
+    @CollectionTable(
+            name = "question_incorrect_answers",
+            joinColumns = @JoinColumn(name = "question_id", referencedColumnName = "question_id")
+    )
     @Column(name = "incorrect_answer")
     private List<String> incorrectAnswers;
 
