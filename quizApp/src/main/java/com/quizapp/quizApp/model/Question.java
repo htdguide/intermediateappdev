@@ -27,7 +27,7 @@ public class Question implements Serializable {
     @Column(name = "answer", nullable = false)
     private String answer;
 
-    @ElementCollection // To store the list in a relational database
+    @ElementCollection(fetch = FetchType.EAGER)// To store the list in a relational database
     @CollectionTable(name = "question_incorrect_answers", joinColumns = @JoinColumn(name = "question_id"))
     @Column(name = "incorrect_answer")
     private List<String> incorrectAnswers;
