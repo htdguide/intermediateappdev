@@ -1,6 +1,8 @@
 package com.quizapp.quizApp.model;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import java.io.Serializable;
 import java.time.LocalDateTime;
@@ -11,17 +13,17 @@ public class UserRecord implements Serializable {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "user_record_id") // Updated column name
-    private Long userRecordId; // Updated field name
+    @Column(name = "user_record_id")
+    private Long userRecordId;
 
     @ManyToOne
     @JoinColumn(name = "user_id", nullable = false)
-    @JsonBackReference
+    @JsonIgnore // Prevents recursion
     private User user;
 
     @ManyToOne
     @JoinColumn(name = "quiz_id", nullable = false)
-    @JsonBackReference
+    @JsonIgnore // Prevents recursion
     private Quiz quiz;
 
     @Column(name = "score", nullable = false)
@@ -39,7 +41,6 @@ public class UserRecord implements Serializable {
         this.playedAt = playedAt;
     }
 
-    // Getter and Setter for userRecordId
     public Long getUserRecordId() {
         return userRecordId;
     }
@@ -78,5 +79,14 @@ public class UserRecord implements Serializable {
 
     public void setPlayedAt(LocalDateTime playedAt) {
         this.playedAt = playedAt;
+    }
+
+    // Add these helper methods
+    public Long getUserId() {
+        return user != null ? user.getUserId() : null;
+    }
+
+    public Long getQuizId() {
+        return quiz != null ? quiz.getQuizId() : null;
     }
 }

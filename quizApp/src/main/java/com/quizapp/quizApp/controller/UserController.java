@@ -2,6 +2,7 @@ package com.quizapp.quizApp.controller;
 
 import com.quizapp.quizApp.model.User;
 import com.quizapp.quizApp.services.UserService;
+import com.quizapp.quizApp.utils.PasswordHashingUtil;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -17,7 +18,7 @@ import java.util.Optional;
 public class UserController {
 
     private final UserService userService;
-    private static final boolean LOGGING_ENABLED = true; // Logging flag
+    private static final boolean LOGGING_ENABLED = false; // Logging flag
 
     @Autowired
     public UserController(UserService userService) {
@@ -80,6 +81,11 @@ public class UserController {
     public User saveUser(@RequestBody @Valid User user) {
         try {
             if (LOGGING_ENABLED) System.out.println("Controller: Saving user: " + user.getEmail());
+
+            // Hash the password before saving the user
+            String hashedPassword = PasswordHashingUtil.hashPassword(user.getPassword());
+            user.setPassword(hashedPassword);
+
             return userService.saveUser(user);
         } catch (Exception e) {
             if (LOGGING_ENABLED) System.err.println("Error in controller while saving user: " + e.getMessage());
@@ -92,6 +98,13 @@ public class UserController {
     public ResponseEntity<User> updateUserById(@PathVariable Long id, @RequestBody @Valid User updatedUser) {
         try {
             if (LOGGING_ENABLED) System.out.println("Controller: Updating user with ID: " + id);
+
+            // If the password is being updated, hash it before saving
+            if (updatedUser.getPassword() != null && !updatedUser.getPassword().isEmpty()) {
+                String hashedPassword = PasswordHashingUtil.hashPassword(updatedUser.getPassword());
+                updatedUser.setPassword(hashedPassword);
+            }
+
             Optional<User> updated = userService.updateUserById(id, updatedUser);
             return updated.map(ResponseEntity::ok)
                     .orElseGet(() -> ResponseEntity.notFound().build());
@@ -112,4 +125,27 @@ public class UserController {
             throw e;
         }
     }
+
+    @PostMapping("/login")
+    public ResponseEntity<User> authenticateUser(@RequestBody User loginUser) {
+        try {
+            if (LOGGING_ENABLED) System.out.println("Request received: " + loginUser);
+
+            String email = loginUser.getEmail();
+            String password = loginUser.getPassword();
+
+            if (LOGGING_ENABLED) System.out.println("Authenticating user with email: " + email);
+
+            Optional<User> user = userService.authenticateUser(email, password);
+            return user.map(ResponseEntity::ok)
+                    .orElseGet(() -> {
+                        if (LOGGING_ENABLED) System.out.println("Authentication failed for email: " + email);
+                        return ResponseEntity.status(401).body(null); // Unauthorized if user not found
+                    });
+        } catch (Exception e) {
+            if (LOGGING_ENABLED) System.err.println("Error in controller: " + e.getMessage());
+            throw e;
+        }
+    }
+
 }

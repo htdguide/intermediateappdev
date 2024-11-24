@@ -1,10 +1,14 @@
 package com.quizapp.quizApp.model;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.quizapp.quizApp.utils.QuizQuestionSerializer;
 import jakarta.persistence.*;
 import java.io.Serializable;
 
+@JsonSerialize(using = QuizQuestionSerializer.class)
 @Entity
 @Table(name = "QuizQuestion")
 public class QuizQuestion implements Serializable {
@@ -16,12 +20,12 @@ public class QuizQuestion implements Serializable {
 
     @ManyToOne
     @JoinColumn(name = "quiz_id", nullable = false, foreignKey = @ForeignKey(name = "fk_quiz_question_quiz"))
-    @JsonManagedReference  // Ensure quiz details are included in the serialized response
+    @JsonIgnore  // Ensure quiz details are included in the serialized response
     private Quiz quiz;
 
     @ManyToOne
     @JoinColumn(name = "question_id", nullable = false, foreignKey = @ForeignKey(name = "fk_quiz_question_question"))
-    @JsonManagedReference  // Ensure question details are included in the serialized response
+    @JsonIgnore  // Ensure question details are included in the serialized response
     private Question question;
 
     public QuizQuestion() {}

@@ -63,6 +63,12 @@ public class UserService {
     public User saveUser(User user) {
         try {
             if (LOGGING_ENABLED) System.out.println("Saving user: " + user.getEmail());
+
+            // Hash the password if it is not already hashed
+            if (user.getPassword() != null && !user.getPassword().startsWith("$2a$")) { // Avoid re-hashing
+                user.setPassword(PasswordHashingUtil.hashPassword(user.getPassword()));
+            }
+
             return userRepository.save(user);
         } catch (Exception e) {
             if (LOGGING_ENABLED) System.err.println("Error saving user: " + e.getMessage());
@@ -107,6 +113,32 @@ public class UserService {
             });
         } catch (Exception e) {
             if (LOGGING_ENABLED) System.err.println("Error updating user by ID: " + e.getMessage());
+            throw e;
+        }
+    }
+
+    // Authenticate user based on email and password
+    public Optional<User> authenticateUser(String email, String password) {
+        try {
+            if (LOGGING_ENABLED) System.out.println("Authenticating user with email: " + email);
+
+            // Fetch user by email
+            Optional<User> userOptional = userRepository.findByEmail(email);
+            if (userOptional.isPresent()) {
+                User user = userOptional.get();
+                // Check if the provided password matches the stored hashed password
+                if (PasswordHashingUtil.verifyPassword(password, user.getPassword())) {
+                    return Optional.of(user);  // Password is correct, return the user
+                } else {
+                    if (LOGGING_ENABLED) System.err.println("Authentication failed: Incorrect password.");
+                    return Optional.empty();  // Incorrect password
+                }
+            } else {
+                if (LOGGING_ENABLED) System.err.println("Authentication failed: User with email " + email + " not found.");
+                return Optional.empty();  // User not found
+            }
+        } catch (Exception e) {
+            if (LOGGING_ENABLED) System.err.println("Error during authentication: " + e.getMessage());
             throw e;
         }
     }

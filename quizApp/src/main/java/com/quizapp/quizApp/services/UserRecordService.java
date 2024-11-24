@@ -1,7 +1,11 @@
 package com.quizapp.quizApp.services;
 
+import com.quizapp.quizApp.model.Quiz;
+import com.quizapp.quizApp.model.User;
 import com.quizapp.quizApp.model.UserRecord;
+import com.quizapp.quizApp.repositories.QuizRepository;
 import com.quizapp.quizApp.repositories.UserRecordRepository;
+import com.quizapp.quizApp.repositories.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -13,10 +17,14 @@ import java.util.Optional;
 public class UserRecordService {
 
     private final UserRecordRepository userRecordRepository;
+    private final UserRepository userRepository;  // Inject UserRepository
+    private final QuizRepository quizRepository;  // Inject QuizRepository
 
     @Autowired
-    public UserRecordService(UserRecordRepository userRecordRepository) {
+    public UserRecordService(UserRecordRepository userRecordRepository, UserRepository userRepository, QuizRepository quizRepository) {
         this.userRecordRepository = userRecordRepository;
+        this.userRepository = userRepository;
+        this.quizRepository = quizRepository;
     }
 
     // Get all user records
@@ -63,4 +71,26 @@ public class UserRecordService {
     public void deleteUserRecordById(Long userRecordId) {
         userRecordRepository.deleteById(userRecordId);
     }
+
+    // Find a record by userId and quizId
+    public UserRecord createOrUpdateUserRecord(Long userId, Long quizId, Integer score) {
+        // Fetch the user and quiz objects using the repositories
+        User user = userRepository.findById(userId).orElseThrow(() -> new RuntimeException("User not found"));
+        Quiz quiz = quizRepository.findById(quizId).orElseThrow(() -> new RuntimeException("Quiz not found"));
+
+        // Check if a record already exists for this user and quiz
+        UserRecord existingRecord = userRecordRepository.findByUser_UserIdAndQuiz_QuizId(userId, quizId);
+
+        if (existingRecord != null) {
+            // If the record exists, update it
+            existingRecord.setScore(score);
+            existingRecord.setPlayedAt(LocalDateTime.now()); // Update playedAt to the current time
+            return userRecordRepository.save(existingRecord);
+        } else {
+            // If the record does not exist, create a new record
+            UserRecord newRecord = new UserRecord(user, quiz, score, LocalDateTime.now());
+            return userRecordRepository.save(newRecord);
+        }
+    }
+
 }

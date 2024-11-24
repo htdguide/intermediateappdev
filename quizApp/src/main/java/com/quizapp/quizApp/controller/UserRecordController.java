@@ -55,11 +55,11 @@ public class UserRecordController {
                 LocalDateTime.parse(startDate), LocalDateTime.parse(endDate));
     }
 
-    // Add a new user record
-    @PostMapping
-    public UserRecord createUserRecord(@RequestBody UserRecord userRecord) {
-        return userRecordService.saveUserRecord(userRecord);
-    }
+//    // Add a new user record
+//    @PostMapping
+//    public UserRecord createUserRecord(@RequestBody UserRecord userRecord) {
+//        return userRecordService.saveUserRecord(userRecord);
+//    }
 
     // Add multiple user records
     @PostMapping("/batch")
@@ -86,4 +86,40 @@ public class UserRecordController {
     public void deleteUserRecordById(@PathVariable Long id) {
         userRecordService.deleteUserRecordById(id);
     }
+
+    // Add or update a user record
+    @PostMapping
+    public UserRecord createOrUpdateUserRecord(@RequestBody UserRecord userRecord) {
+        // Check if the record already exists
+        UserRecord existingRecord = userRecordService.getUserRecordByUserIdAndQuizId(
+                userRecord.getUser().getUserId(),
+                userRecord.getQuiz().getQuizId()
+        );
+
+        if (existingRecord != null) {
+            // Update the existing record
+            existingRecord.setScore(userRecord.getScore());
+            existingRecord.setPlayedAt(LocalDateTime.now()); // Update the timestamp
+            return userRecordService.saveUserRecord(existingRecord);
+        }
+
+        // If no record exists, create a new one
+        userRecord.setPlayedAt(LocalDateTime.now()); // Set current timestamp
+        return userRecordService.saveUserRecord(userRecord);
+    }
+
+    // Submit or update a user record for a quiz
+    @PostMapping("/submit-quiz")
+    public ResponseEntity<UserRecord> submitQuiz(
+            @RequestParam Long userId,
+            @RequestParam Long quizId,
+            @RequestParam Integer score) {
+        try {
+            UserRecord userRecord = userRecordService.createOrUpdateUserRecord(userId, quizId, score);
+            return ResponseEntity.ok(userRecord);
+        } catch (Exception e) {
+            return ResponseEntity.status(400).body(null);
+        }
+    }
+
 }
