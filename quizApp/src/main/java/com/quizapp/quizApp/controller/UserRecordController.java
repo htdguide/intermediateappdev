@@ -8,7 +8,8 @@ import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Optional;
+import org.springframework.http.HttpStatus;
+
 
 @RestController
 @RequestMapping("/user-records")
@@ -29,10 +30,16 @@ public class UserRecordController {
 
     // Get a user record by userId and quizId
     @GetMapping("/user/{userId}/quiz/{quizId}")
-    public ResponseEntity<UserRecord> getUserRecordByUserIdAndQuizId(
+    public ResponseEntity<?> getUserRecordByUserIdAndQuizId(
             @PathVariable Long userId, @PathVariable Long quizId) {
         UserRecord record = userRecordService.getUserRecordByUserIdAndQuizId(userId, quizId);
-        return record != null ? ResponseEntity.ok(record) : ResponseEntity.notFound().build();
+
+        if (record != null) {
+            return ResponseEntity.ok(record); // Return the record if found
+        } else {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body("No record found for userId " + userId + " and quizId " + quizId); // Handle null value
+        }
     }
 
     // Get all records for a specific user
@@ -88,24 +95,47 @@ public class UserRecordController {
     }
 
     // Add or update a user record
-    @PostMapping
-    public UserRecord createOrUpdateUserRecord(@RequestBody UserRecord userRecord) {
-        // Check if the record already exists
-        UserRecord existingRecord = userRecordService.getUserRecordByUserIdAndQuizId(
-                userRecord.getUser().getUserId(),
-                userRecord.getQuiz().getQuizId()
-        );
+    @PostMapping(consumes = "application/json", produces = "application/json")
+    public ResponseEntity<?> createOrUpdateUserRecord(@RequestBody UserRecord userRecord) {
+        try {
+            System.out.println("Received UserRecord: " + userRecord);
 
-        if (existingRecord != null) {
-            // Update the existing record
-            existingRecord.setScore(userRecord.getScore());
-            existingRecord.setPlayedAt(LocalDateTime.now()); // Update the timestamp
-            return userRecordService.saveUserRecord(existingRecord);
+            // Validate user and quiz fields
+            if (userRecord.getUser() == null || userRecord.getUser().getUserId() == null) {
+                System.err.println("Invalid user information: " + userRecord.getUser());
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                        .body("Invalid user information in the request.");
+            }
+
+            if (userRecord.getQuiz() == null || userRecord.getQuiz().getQuizId() == null) {
+                System.err.println("Invalid quiz information: " + userRecord.getQuiz());
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                        .body("Invalid quiz information in the request.");
+            }
+
+            // Proceed with existing logic...
+            UserRecord existingRecord = userRecordService.getUserRecordByUserIdAndQuizId(
+                    userRecord.getUser().getUserId(),
+                    userRecord.getQuiz().getQuizId()
+            );
+
+            if (existingRecord != null) {
+                existingRecord.setScore(userRecord.getScore());
+                existingRecord.setPlayedAt(LocalDateTime.now());
+                UserRecord updatedRecord = userRecordService.saveUserRecord(existingRecord);
+                return ResponseEntity.ok(updatedRecord);
+            }
+
+            userRecord.setPlayedAt(LocalDateTime.now());
+            UserRecord newRecord = userRecordService.saveUserRecord(userRecord);
+            return ResponseEntity.ok(newRecord);
+
+        } catch (Exception e) {
+            System.err.println("Error in createOrUpdateUserRecord: " + e.getMessage());
+            e.printStackTrace();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("An error occurred while creating or updating the user record.");
         }
-
-        // If no record exists, create a new one
-        userRecord.setPlayedAt(LocalDateTime.now()); // Set current timestamp
-        return userRecordService.saveUserRecord(userRecord);
     }
 
     // Submit or update a user record for a quiz

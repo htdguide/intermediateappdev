@@ -30,30 +30,28 @@ public class QuizCreationService {
         this.quizQuestionRepository = quizQuestionRepository;
     }
 
-    // Public method to create a quiz with random questions
     public Quiz createQuizWithRandomQuestions(String title, LocalDate startDate, LocalDate endDate, String category, String difficulty) {
         try {
             if (LOGGING_ENABLED) System.out.println("Creating quiz with random questions.");
 
-            // Fetch and save questions from the external API
+            // Step 1: Fetch and save questions from the external API
             String apiUrl = buildApiUrl(category, difficulty);
             if (LOGGING_ENABLED) System.out.println("API URL generated: " + apiUrl);
-            questionService.fetchQuestionsFromApi(apiUrl);
+            questionService.fetchQuestionsFromApi(apiUrl); // Save questions and flush to DB
 
-            // Fetch 10 random questions from the database based on the provided category
+            // Step 2: Fetch 10 random questions from the database based on the provided category
             List<Question> questions = getRandomQuestionsFromDatabase(category, 10);
-            if (LOGGING_ENABLED) System.out.println("Fetched " + questions.size() + " questions from the database.");
-
             if (questions.isEmpty()) {
                 if (LOGGING_ENABLED) System.err.println("No questions found in the category: " + category);
                 throw new IllegalStateException("No questions found for the selected category.");
             }
+            if (LOGGING_ENABLED) System.out.println("Fetched " + questions.size() + " questions from the database.");
 
-            // Create and save the quiz
+            // Step 3: Create and save the quiz
             Quiz quiz = createQuiz(title, startDate, endDate);
             if (LOGGING_ENABLED) System.out.println("Quiz created with ID: " + quiz.getQuizId());
 
-            // Link the questions to the quiz using QuizQuestion
+            // Step 4: Link the questions to the quiz
             linkQuestionsToQuiz(quiz, questions);
             if (LOGGING_ENABLED) System.out.println("Questions linked to the quiz successfully.");
 

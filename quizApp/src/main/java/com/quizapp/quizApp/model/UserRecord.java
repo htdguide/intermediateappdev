@@ -18,13 +18,14 @@ public class UserRecord implements Serializable {
 
     @ManyToOne
     @JoinColumn(name = "user_id", nullable = false)
-    @JsonIgnore // Prevents recursion
+    @JsonBackReference(value = "user-reference")
     private User user;
 
     @ManyToOne
     @JoinColumn(name = "quiz_id", nullable = false)
-    @JsonIgnore // Prevents recursion
+    @JsonBackReference(value = "quiz-reference")
     private Quiz quiz;
+
 
     @Column(name = "score", nullable = false)
     private Integer score;
