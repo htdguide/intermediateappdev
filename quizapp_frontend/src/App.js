@@ -1,70 +1,67 @@
 import React, { useState, useEffect } from 'react';
-import { BrowserRouter as Router, Route, Routes, Navigate } from 'react-router-dom';
+import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import Header from './components/Header';
 import Footer from './components/Footer';
 import Home from './pages/HomePage';
 import LoginPage from './pages/LoginPage';
-import UserPage from './pages/UserPage'; // Player page
-import AdminPage from './pages/AdminPage'; // Admin page
+import UserPage from './pages/UserPage';
+import AdminPage from './pages/AdminPage';
 import PlayQuizPage from './pages/PlayQuizPage';
+import ProtectedRoute from './components/ProtectedRoute';
 
 const App = () => {
-  const [user, setUser] = useState(null);
+    const [user, setUser] = useState(null);
 
-  useEffect(() => {
-    const storedUser = JSON.parse(localStorage.getItem('user'));
-    if (storedUser) {
-      setUser(storedUser);
-    }
-  }, []);
+    useEffect(() => {
+        const storedUser = JSON.parse(localStorage.getItem('user'));
+        if (storedUser) {
+            setUser(storedUser);
+        }
+    }, []);
 
-  const logout = () => {
-    localStorage.removeItem('user');
-    setUser(null);
-  };
+    const logout = () => {
+        localStorage.removeItem('user');
+        setUser(null);
+        window.location.href = '/'; // Redirect to homepage
+    };
 
-  return (
-    <Router future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
-      <Header user={user} logout={logout} />
-      <div className="container">
-        <Routes>
-          <Route path="/" element={<Home />} />
-          <Route path="/login" element={<LoginPage />} />
-          <Route
-            path="/user"
-            element={
-              user ? (
-                user.usertype === 'PLAYER' ? (
-                  <UserPage />
-                ) : (
-                  <Navigate to="/admin" />
-                )
-              ) : (
-                <Navigate to="/login" />
-              )
-            }
-          />
-          <Route
-            path="/admin"
-            element={
-              user ? (
-                user.usertype === 'ADMIN' ? (
-                  <AdminPage />
-                ) : (
-                  <Navigate to="/user" />
-                )
-              ) : (
-                <Navigate to="/login" />
-              )
-            }
-          />
-          <Route path="/play-quiz/:quizId" element={<PlayQuizPage />} />
-        </Routes>
-      </div>
-      <Footer />
-    </Router>
-  );
+    return (
+        <Router>
+            <Header user={user} logout={logout} />
+            <div className="container mt-4">
+                <Routes>
+                    <Route path="/" element={<Home />} />
+                    <Route path="/login" element={<LoginPage setUser={setUser} />} />
+                    <Route
+                        path="/user"
+                        element={
+                            <ProtectedRoute user={user} allowedRoles={['PLAYER']}>
+                                <UserPage />
+                            </ProtectedRoute>
+                        }
+                    />
+                    <Route
+                        path="/admin"
+                        element={
+                            <ProtectedRoute user={user} allowedRoles={['ADMIN']}>
+                                <AdminPage />
+                            </ProtectedRoute>
+                        }
+                    />
+                    <Route
+                        path="/play-quiz/:quizId"
+                        element={
+                            <ProtectedRoute user={user} allowedRoles={['PLAYER']}>
+                                <PlayQuizPage />
+                            </ProtectedRoute>
+                        }
+                    />
+                </Routes>
+            </div>
+            <Footer />
+        </Router>
+    );
 };
 
 export default App;

@@ -1,32 +1,56 @@
 import React from 'react';
-import { Link } from 'react-router-dom';
+import { NavLink } from 'react-router-dom';
 import { Navbar, Nav, Container } from 'react-bootstrap';
 
 function Header({ user, logout }) {
   return (
     <Navbar bg="dark" variant="dark" expand="lg" sticky="top">
       <Container>
-        <Navbar.Brand as={Link} to="/">QuizApp</Navbar.Brand>
+        <Navbar.Brand as={NavLink} to="/">QuizApp</Navbar.Brand>
 
         <Navbar.Toggle aria-controls="basic-navbar-nav" />
 
         <Navbar.Collapse id="basic-navbar-nav">
           <Nav className="ml-auto">
             <Nav.Item>
-              <Link to="/" className="nav-link">Home</Link>
+              <NavLink to="/" className={({ isActive }) => isActive ? 'nav-link active' : 'nav-link'}>
+                Home
+              </NavLink>
             </Nav.Item>
             {user ? (
               <>
+                {user.usertype === 'PLAYER' && (
+                  <Nav.Item>
+                    <NavLink to="/user" className={({ isActive }) => isActive ? 'nav-link active' : 'nav-link'}>
+                      User
+                    </NavLink>
+                  </Nav.Item>
+                )}
+                {user.usertype === 'ADMIN' && (
+                  <Nav.Item>
+                    <NavLink to="/admin" className={({ isActive }) => isActive ? 'nav-link active' : 'nav-link'}>
+                      Admin
+                    </NavLink>
+                  </Nav.Item>
+                )}
                 <Nav.Item>
-                  <Link to="/user" className="nav-link">User</Link>
-                </Nav.Item>
-                <Nav.Item>
-                  <Link to="/" onClick={logout} className="nav-link">Logout</Link>
+                  <NavLink
+                    to="/"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      logout();
+                    }}
+                    className="nav-link"
+                  >
+                    Logout
+                  </NavLink>
                 </Nav.Item>
               </>
             ) : (
               <Nav.Item>
-                <Link to="/login" className="nav-link">Login</Link>
+                <NavLink to="/login" className={({ isActive }) => isActive ? 'nav-link active' : 'nav-link'}>
+                  Login
+                </NavLink>
               </Nav.Item>
             )}
           </Nav>

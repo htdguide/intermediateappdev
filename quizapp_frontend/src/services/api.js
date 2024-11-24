@@ -91,18 +91,21 @@ export const getQuizQuestions = async (quizId) => {
 // Save or update a user record
 export const saveOrUpdateUserRecord = async (userId, quizId, score) => {
     try {
+        console.log(`Saving/Updating record for User ID: ${userId}, Quiz ID: ${quizId}`);
         const response = await api.post('/user-records', {
             user: { userId },
             quiz: { quizId },
             score,
             playedAt: new Date().toISOString(), // Current timestamp
         });
+        console.log('Response from server:', response.data);
         return response.data; // Return the saved or updated record
     } catch (error) {
         console.error('Error saving/updating user record:', error);
         throw error.response ? error.response.data : 'Failed to save/update user record';
     }
 };
+
 
 // Get a user record by userId and quizId
 export const getUserRecordByUserIdAndQuizId = async (userId, quizId) => {
@@ -112,5 +115,16 @@ export const getUserRecordByUserIdAndQuizId = async (userId, quizId) => {
     } catch (error) {
         console.error('Error fetching user record:', error);
         throw error.response ? error.response.data : 'Failed to fetch user record';
+    }
+};
+
+export const submitQuiz = async (userId, quizId, score) => {
+    try {
+        const params = new URLSearchParams({ userId, quizId, score });
+        const response = await api.post(`/user-records/submit-quiz?${params.toString()}`);
+        return response.data;
+    } catch (error) {
+        console.error('Error submitting quiz:', error);
+        throw error.response ? error.response.data : 'Failed to submit quiz';
     }
 };
