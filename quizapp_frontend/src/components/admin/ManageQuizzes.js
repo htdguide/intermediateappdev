@@ -1,21 +1,20 @@
 import React, { useState, useEffect } from 'react';
-import { getAllQuizzes } from '../../services/api'; // Ensure admin API is used for fetching quizzes
+import { getAllQuizzes } from '../../services/api';
 import { Table, Button, Spinner, Alert, Container } from 'react-bootstrap';
+import AddQuizModal from './AddQuizModal';
 
 const ManageQuizzes = () => {
     const [quizzes, setQuizzes] = useState([]);
     const [error, setError] = useState('');
     const [loading, setLoading] = useState(true);
+    const [showModal, setShowModal] = useState(false);
 
     useEffect(() => {
         const fetchQuizzes = async () => {
             try {
-                console.log('Fetching quizzes...');
                 const data = await getAllQuizzes();
-                console.log('Quizzes fetched:', data);
                 setQuizzes(data);
             } catch (err) {
-                console.error('Error fetching quizzes:', err);
                 setError(err.message || 'Failed to load quizzes');
             } finally {
                 setLoading(false);
@@ -24,6 +23,10 @@ const ManageQuizzes = () => {
 
         fetchQuizzes();
     }, []);
+
+    const handleQuizCreated = (newQuiz) => {
+        setQuizzes((prev) => [...prev, newQuiz]); // Add the new quiz to the list
+    };
 
     return (
         <Container className="mt-4">
@@ -39,8 +42,7 @@ const ManageQuizzes = () => {
                     <div className="mb-3 text-end">
                         <Button
                             variant="primary"
-                            className="me-2"
-                            onClick={() => console.log('Create Quiz clicked')}
+                            onClick={() => setShowModal(true)}
                         >
                             Add Quiz
                         </Button>
@@ -95,6 +97,11 @@ const ManageQuizzes = () => {
                     </Table>
                 </>
             )}
+            <AddQuizModal
+                show={showModal}
+                onHide={() => setShowModal(false)}
+                onQuizCreated={handleQuizCreated}
+            />
         </Container>
     );
 };

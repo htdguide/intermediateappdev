@@ -81,3 +81,23 @@ export const deleteUserById = async (id) => {
         throw error.response ? error.response.data : 'Failed to delete user';
     }
 };
+
+// Create a quiz
+export const createQuiz = async ({ title, startDate, endDate, category, difficulty }) => {
+    try {
+        const response = await adminApi.post('/quizcreation/create', null, {
+            params: {
+                title,
+                startDate,
+                endDate,
+                category,
+                difficulty,
+            },
+        });
+        console.log('Admin API: Quiz created successfully', response.data);
+        return response.data;
+    } catch (error) {
+        console.error('Admin API: Error creating quiz:', error);
+        throw error.response ? error.response.data : 'Failed to create quiz';
+    }
+};
