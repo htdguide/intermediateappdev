@@ -1,8 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import { Container, Row, Col, Card, Form, Button, Alert } from 'react-bootstrap';
-import { getQuizQuestions, getUserRecordByUserIdAndQuizId } from '../services/api';
-import { submitQuiz } from '../services/api';
+import { getQuizQuestions, getUserRecordByUserIdAndQuizId, saveOrUpdateUserRecord } from '../services/api';
 
 function PlayQuizPage() {
     const { quizId } = useParams(); // Get quizId from URL parameters
@@ -11,36 +10,60 @@ function PlayQuizPage() {
     const [userAnswers, setUserAnswers] = useState({});
     const [score, setScore] = useState(null);
     const [existingRecord, setExistingRecord] = useState(null);
-    const [loading, setLoading] = useState(true); // Add loading state
+    const [loading, setLoading] = useState(true); // Loading state
     const [error, setError] = useState(''); // For displaying error messages
 
-    useEffect(() => {
-        const fetchQuestionsAndRecord = async () => {
-            try {
-                console.log(`Fetching questions for quiz ID: ${quizId}`);
-                const fetchedQuestions = await getQuizQuestions(quizId);
-                console.log('Fetched Questions:', fetchedQuestions);
+    // Fetch quiz questions
+    const fetchQuizQuestions = async () => {
+        try {
+            console.log(`Fetching questions for quiz ID: ${quizId}`);
+            const fetchedQuestions = await getQuizQuestions(quizId);
 
-                const formattedQuestions = fetchedQuestions.map((item) => ({
-                    ...item.question,
-                }));
-                setQuestions(formattedQuestions);
-
-                console.log(`Checking for existing record for user ID ${user.userId} and quiz ID ${quizId}`);
-                const record = await getUserRecordByUserIdAndQuizId(user.userId, quizId);
-                if (record) {
-                    console.log('Existing Record Found:', record);
-                    setExistingRecord(record);
-                }
-                setLoading(false); // Set loading to false after data is fetched
-            } catch (error) {
-                console.error('Error fetching questions or record:', error);
-                setError('Failed to load quiz or existing record.');
-                setLoading(false); // Set loading to false even if there's an error
+            if (!fetchedQuestions || fetchedQuestions.length === 0) {
+                throw new Error('No questions found for this quiz.');
             }
+
+            const formattedQuestions = fetchedQuestions.map((item) => {
+                if (!item.question) {
+                    throw new Error(`Invalid question data: ${JSON.stringify(item)}`);
+                }
+                return { ...item.question };
+            });
+
+            setQuestions(formattedQuestions);
+        } catch (error) {
+            console.error('Error fetching quiz questions:', error);
+            setError('Failed to load quiz questions.');
+        }
+    };
+
+    // Check user record
+    const checkUserRecord = async () => {
+        try {
+            console.log(`Checking for existing record for user ID ${user.userId} and quiz ID ${quizId}`);
+            const record = await getUserRecordByUserIdAndQuizId(user.userId, quizId);
+            if (record) {
+                console.log('Existing Record Found:', record);
+                setExistingRecord(record);
+            } else {
+                console.log('No existing record found.');
+                setExistingRecord(null);
+            }
+        } catch (error) {
+            console.warn('No existing record found or error fetching record:', error);
+            setExistingRecord(null);
+        }
+    };
+
+    useEffect(() => {
+        const initializePage = async () => {
+            setLoading(true);
+            await fetchQuizQuestions();
+            await checkUserRecord();
+            setLoading(false);
         };
 
-        fetchQuestionsAndRecord();
+        initializePage();
     }, [quizId, user.userId]);
 
     const handleOptionChange = (questionId, selectedOption) => {
@@ -53,17 +76,17 @@ function PlayQuizPage() {
 
     const handleSubmitQuiz = async () => {
         console.log('Submitting quiz...');
-    
+
         // Check if all questions are answered
         const unansweredQuestions = questions.filter(
             (question) => !userAnswers[question.questionId]
         );
-    
+
         if (unansweredQuestions.length > 0) {
             alert('Please answer all the questions before submitting!');
             return;
         }
-    
+
         // Calculate score
         let calculatedScore = 0;
         questions.forEach((question) => {
@@ -73,12 +96,12 @@ function PlayQuizPage() {
         });
         console.log(`Final Score: ${calculatedScore}`);
         setScore(calculatedScore);
-    
+
         try {
-            console.log('Submitting quiz record...');
-            const savedRecord = await submitQuiz(user.userId, quizId, calculatedScore);
-            console.log('Quiz Record Submitted:', savedRecord);
-            setExistingRecord(savedRecord); // Update the existing record
+            console.log('Saving or updating quiz record...');
+            const record = await saveOrUpdateUserRecord(user.userId, quizId, calculatedScore);
+            console.log('Quiz Record Saved/Updated:', record);
+            setExistingRecord(record);
         } catch (error) {
             console.error('Error submitting quiz:', error);
             setError('Error submitting your quiz record. Please try again later.');
@@ -86,7 +109,7 @@ function PlayQuizPage() {
     };
 
     if (loading) {
-        return <p>Loading questions...</p>;
+        return <p>Loading quiz...</p>;
     }
 
     if (error) {

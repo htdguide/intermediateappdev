@@ -91,6 +91,10 @@ export const getQuizQuestions = async (quizId) => {
 // Save or update a user record
 export const saveOrUpdateUserRecord = async (userId, quizId, score) => {
     try {
+        if (!userId || !quizId) {
+            throw new Error('Invalid userId or quizId.');
+        }
+
         console.log(`Saving/Updating record for User ID: ${userId}, Quiz ID: ${quizId}`);
         const response = await api.post('/user-records', {
             user: { userId },
