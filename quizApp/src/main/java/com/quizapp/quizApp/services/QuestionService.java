@@ -178,7 +178,11 @@ public class QuestionService {
             });
 
             // Save the questions to the database
-            return questionRepository.saveAll(questions);
+            List<Question> savedQuestions = questionRepository.saveAll(questions);
+            questionRepository.flush(); // Ensure the changes are flushed to the database
+            if (LOGGING_ENABLED) System.out.println("Questions saved and flushed to database: " + savedQuestions.size());
+
+            return savedQuestions;
 
         } catch (HttpClientErrorException e) {
             if (e.getStatusCode() == HttpStatus.TOO_MANY_REQUESTS) {
@@ -192,6 +196,5 @@ public class QuestionService {
             throw new RuntimeException("Failed to parse API response: " + e.getMessage(), e);
         }
     }
-
 
 }
