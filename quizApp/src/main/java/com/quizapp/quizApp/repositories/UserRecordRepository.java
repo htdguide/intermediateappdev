@@ -15,6 +15,9 @@ public interface UserRecordRepository extends JpaRepository<UserRecord, Long> {
     // Find a record by userId and quizId
     UserRecord findByUser_UserIdAndQuiz_QuizId(Long userId, Long quizId);
 
+    // Find a record by userId and quizId
+    //UserRecord findByUserIdAndQuizId(Long userId, Long quizId);
+
     // Find all records for a specific user
     List<UserRecord> findByUser_UserId(Long userId);
 

@@ -1,9 +1,12 @@
 package com.quizapp.quizApp.model;
 
+import com.fasterxml.jackson.annotation.JsonIdentityInfo;
+import com.fasterxml.jackson.annotation.ObjectIdGenerators;
 import jakarta.persistence.*;
 import java.io.Serializable;
 import java.util.List;
 
+@JsonIdentityInfo(generator = ObjectIdGenerators.PropertyGenerator.class, property = "questionId")
 @Entity
 @Table(name = "Question", indexes = {
         @Index(name = "idx_category", columnList = "category"),

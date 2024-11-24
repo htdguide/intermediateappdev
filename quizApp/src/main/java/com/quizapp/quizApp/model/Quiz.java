@@ -1,7 +1,6 @@
 package com.quizapp.quizApp.model;
 
-import com.fasterxml.jackson.annotation.JsonBackReference;
-import com.fasterxml.jackson.annotation.JsonManagedReference;
+import com.fasterxml.jackson.annotation.*;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Future;
 import jakarta.validation.constraints.FutureOrPresent;
@@ -10,6 +9,7 @@ import java.io.Serializable;
 import java.time.LocalDate;
 import java.util.List;
 
+@JsonIdentityInfo(generator = ObjectIdGenerators.PropertyGenerator.class, property = "quizId")
 @Entity
 @Table(name = "Quiz", indexes = {
         @Index(name = "idx_start_date", columnList = "start_date"),
@@ -35,7 +35,7 @@ public class Quiz implements Serializable {
     private LocalDate endDate;
 
     @OneToMany(mappedBy = "quiz", cascade = CascadeType.ALL, orphanRemoval = true)
-    @JsonBackReference  // Prevents recursion by ignoring quizQuestions during serialization
+    @JsonIgnore // Prevents recursion by ignoring quizQuestions during serialization
     private List<QuizQuestion> quizQuestions;
 
     public Quiz() {}
