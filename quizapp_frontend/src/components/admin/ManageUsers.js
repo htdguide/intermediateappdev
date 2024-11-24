@@ -98,7 +98,7 @@ const ManageUsers = () => {
                         </thead>
                         <tbody>
                             {users.map((user, index) => (
-                                <tr key={user.userId}> {/* Use `userId` as the key */}
+                                <tr key={user.userId}>
                                     <td>{index + 1}</td>
                                     <td>{user.firstName}</td>
                                     <td>{user.lastName}</td>
@@ -124,6 +124,7 @@ const ManageUsers = () => {
                                 </tr>
                             ))}
                         </tbody>
+
                     </Table>
                 </div>
             )}
