@@ -12,7 +12,7 @@ const UserModal = ({ show, onHide, onSubmit, userData, mode }) => {
     const [error, setError] = useState('');
 
     useEffect(() => {
-        if (userData) {
+        if (mode === 'edit' && userData) {
             setFormValues((prevValues) => ({
                 ...prevValues,
                 firstName: userData.firstName || '',
@@ -21,8 +21,17 @@ const UserModal = ({ show, onHide, onSubmit, userData, mode }) => {
                 usertype: userData.usertype || 'PLAYER',
                 password: '', // Blank for updates
             }));
+        } else if (mode === 'create') {
+            setFormValues({
+                firstName: '',
+                lastName: '',
+                email: '',
+                usertype: 'PLAYER',
+                password: '', // Default to blank
+            });
         }
-    }, [userData]);
+    }, [userData, mode]);
+    
 
     const handleChange = (e) => {
         const { name, value } = e.target;
