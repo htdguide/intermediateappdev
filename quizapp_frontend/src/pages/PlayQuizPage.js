@@ -3,6 +3,15 @@ import { useParams } from 'react-router-dom';
 import { Container, Row, Col, Card, Form, Button, Alert } from 'react-bootstrap';
 import { getQuizQuestions, getUserRecordByUserIdAndQuizId, saveOrUpdateUserRecord } from '../services/api';
 
+// Utility function to shuffle an array
+const shuffleArray = (array) => {
+    for (let i = array.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [array[i], array[j]] = [array[j], array[i]];
+    }
+    return array;
+};
+
 function PlayQuizPage() {
     const { quizId } = useParams(); // Get quizId from URL parameters
     const user = JSON.parse(localStorage.getItem('user')); // Logged-in user data
@@ -27,7 +36,12 @@ function PlayQuizPage() {
                 if (!item.question) {
                     throw new Error(`Invalid question data: ${JSON.stringify(item)}`);
                 }
-                return { ...item.question };
+                // Shuffle options (incorrectAnswers and answer)
+                const shuffledOptions = shuffleArray([
+                    ...item.question.incorrectAnswers,
+                    item.question.answer,
+                ]);
+                return { ...item.question, shuffledOptions };
             });
 
             setQuestions(formattedQuestions);
@@ -150,7 +164,7 @@ function PlayQuizPage() {
                                         Question {index + 1}: {question.text}
                                     </Card.Title>
                                     <div className="mt-3">
-                                        {[...question.incorrectAnswers, question.answer].map((option, idx) => (
+                                        {question.shuffledOptions.map((option, idx) => (
                                             <Form.Check
                                                 type="radio"
                                                 key={idx}
