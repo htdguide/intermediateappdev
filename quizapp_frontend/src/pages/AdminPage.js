@@ -2,7 +2,6 @@ import React from 'react';
 import { Tab, Nav, Container } from 'react-bootstrap';
 import ManageUsers from '../components/admin/ManageUsers';
 import ManageQuizzes from '../components/admin/ManageQuizzes';
-import ManageUserRecords from '../components/admin/ManageUserRecords';
 
 const AdminPage = () => {
     const user = JSON.parse(localStorage.getItem('user')); // Get the logged-in admin user data
@@ -35,9 +34,6 @@ const AdminPage = () => {
                     <Nav.Item>
                         <Nav.Link eventKey="manageQuizzes">Manage Quizzes</Nav.Link>
                     </Nav.Item>
-                    <Nav.Item>
-                        <Nav.Link eventKey="userRecords">User Records</Nav.Link>
-                    </Nav.Item>
                 </Nav>
                 <Tab.Content>
                     <Tab.Pane eventKey="manageUsers">
@@ -45,9 +41,6 @@ const AdminPage = () => {
                     </Tab.Pane>
                     <Tab.Pane eventKey="manageQuizzes">
                         <ManageQuizzes />
-                    </Tab.Pane>
-                    <Tab.Pane eventKey="userRecords">
-                        <ManageUserRecords />
                     </Tab.Pane>
                 </Tab.Content>
             </Tab.Container>
