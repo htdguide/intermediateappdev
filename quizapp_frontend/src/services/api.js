@@ -96,12 +96,16 @@ export const saveOrUpdateUserRecord = async (userId, quizId, score) => {
         }
 
         console.log(`Saving/Updating record for User ID: ${userId}, Quiz ID: ${quizId}`);
-        const response = await api.post('/user-records', {
-            user: { userId },
-            quiz: { quizId },
+        const payload = {
+            user: { userId }, // Ensure this matches your backend model
+            quiz: { quizId }, // Ensure this matches your backend model
             score,
-            playedAt: new Date().toISOString(), // Current timestamp
-        });
+            playedAt: new Date().toISOString(),
+        };
+
+        console.log('Payload being sent:', payload);
+
+        const response = await api.post('/user-records', payload);
         console.log('Response from server:', response.data);
         return response.data; // Return the saved or updated record
     } catch (error) {
@@ -109,7 +113,6 @@ export const saveOrUpdateUserRecord = async (userId, quizId, score) => {
         throw error.response ? error.response.data : 'Failed to save/update user record';
     }
 };
-
 
 // Get a user record by userId and quizId
 export const getUserRecordByUserIdAndQuizId = async (userId, quizId) => {

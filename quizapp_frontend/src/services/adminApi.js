@@ -101,3 +101,32 @@ export const createQuiz = async ({ title, startDate, endDate, category, difficul
         throw error.response ? error.response.data : 'Failed to create quiz';
     }
 };
+
+export const updateQuizById = async (quizId, updatedQuiz) => {
+    if (!quizId) {
+        throw new Error('Quiz ID is required for updating');
+    }
+    try {
+        const response = await adminApi.put(`/quizzes/${quizId}`, updatedQuiz);
+        console.log(`Admin API: Updated quiz with ID: ${quizId}`, response.data);
+        return response.data;
+    } catch (error) {
+        console.error(`Admin API: Error updating quiz with ID ${quizId}:`, error);
+        throw error.response ? error.response.data : 'Failed to update quiz';
+    }
+};
+
+export const deleteQuizById = async (quizId) => {
+    if (!quizId) {
+        throw new Error('Quiz ID is required for deleting');
+    }
+    try {
+        const response = await adminApi.delete(`/quizzes/${quizId}`);
+        console.log(`Admin API: Deleted quiz with ID: ${quizId}`);
+        return response.data;
+    } catch (error) {
+        console.error(`Admin API: Error deleting quiz with ID ${quizId}:`, error);
+        throw error.response ? error.response.data : 'Failed to delete quiz';
+    }
+};
+

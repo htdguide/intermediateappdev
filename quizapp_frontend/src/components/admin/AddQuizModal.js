@@ -1,8 +1,8 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Modal, Button, Form, Alert } from 'react-bootstrap';
-import { createQuiz } from '../../services/adminApi'; // Import the new method
+import { createQuiz, updateQuizById } from '../../services/adminApi'; // Import the update method
 
-const AddQuizModal = ({ show, onHide, onQuizCreated }) => {
+const AddQuizModal = ({ show, onHide, onQuizCreated, quiz }) => {
     const [title, setTitle] = useState('');
     const [startDate, setStartDate] = useState('');
     const [endDate, setEndDate] = useState('');
@@ -11,24 +11,49 @@ const AddQuizModal = ({ show, onHide, onQuizCreated }) => {
     const [error, setError] = useState('');
     const [loading, setLoading] = useState(false);
 
+    // Populate fields if editing a quiz
+    useEffect(() => {
+        if (quiz) {
+            setTitle(quiz.title || '');
+            setStartDate(quiz.startDate || '');
+            setEndDate(quiz.endDate || '');
+            setCategory(''); // Reset category since it's not needed for editing
+            setDifficulty(''); // Reset difficulty since it's not needed for editing
+        } else {
+            // Reset fields if not editing
+            setTitle('');
+            setStartDate('');
+            setEndDate('');
+            setCategory('');
+            setDifficulty('');
+        }
+    }, [quiz]);
+
     const handleSubmit = async () => {
         setLoading(true);
         setError('');
         try {
-            const newQuiz = await createQuiz({ title, startDate, endDate, category, difficulty });
-            onQuizCreated(newQuiz); // Notify parent of the new quiz
+            if (quiz && quiz.quizId) { // Check for quiz.quizId
+                const updatedQuiz = { title, startDate, endDate };
+                const result = await updateQuizById(quiz.quizId, updatedQuiz); // Pass quiz.quizId
+                onQuizCreated(result); // Notify parent of the updated quiz
+            } else {
+                const newQuiz = await createQuiz({ title, startDate, endDate, category, difficulty });
+                onQuizCreated(newQuiz); // Notify parent of the new quiz
+            }
             onHide(); // Close the modal
         } catch (err) {
-            setError(err.message || 'Failed to create quiz');
+            setError(err.message || 'Failed to save quiz');
         } finally {
             setLoading(false);
         }
     };
-
+    
+    
     return (
         <Modal show={show} onHide={onHide} centered>
             <Modal.Header closeButton>
-                <Modal.Title>Add Quiz</Modal.Title>
+                <Modal.Title>{quiz ? 'Edit Quiz' : 'Add Quiz'}</Modal.Title>
             </Modal.Header>
             <Modal.Body>
                 {error && <Alert variant="danger">{error}</Alert>}
@@ -58,28 +83,32 @@ const AddQuizModal = ({ show, onHide, onQuizCreated }) => {
                             onChange={(e) => setEndDate(e.target.value)}
                         />
                     </Form.Group>
-                    <Form.Group className="mb-3" controlId="formCategory">
-                        <Form.Label>Category</Form.Label>
-                        <Form.Control
-                            type="text"
-                            placeholder="Enter quiz category"
-                            value={category}
-                            onChange={(e) => setCategory(e.target.value)}
-                        />
-                    </Form.Group>
-                    <Form.Group className="mb-3" controlId="formDifficulty">
-                        <Form.Label>Difficulty</Form.Label>
-                        <Form.Control
-                            as="select"
-                            value={difficulty}
-                            onChange={(e) => setDifficulty(e.target.value.toLowerCase())}
-                        >
-                            <option value="">Select Difficulty</option>
-                            <option value="easy">Easy</option>
-                            <option value="medium">Medium</option>
-                            <option value="hard">Hard</option>
-                        </Form.Control>
-                    </Form.Group>
+                    {!quiz && (
+                        <>
+                            <Form.Group className="mb-3" controlId="formCategory">
+                                <Form.Label>Category</Form.Label>
+                                <Form.Control
+                                    type="text"
+                                    placeholder="Enter quiz category"
+                                    value={category}
+                                    onChange={(e) => setCategory(e.target.value)}
+                                />
+                            </Form.Group>
+                            <Form.Group className="mb-3" controlId="formDifficulty">
+                                <Form.Label>Difficulty</Form.Label>
+                                <Form.Control
+                                    as="select"
+                                    value={difficulty}
+                                    onChange={(e) => setDifficulty(e.target.value.toLowerCase())}
+                                >
+                                    <option value="">Select Difficulty</option>
+                                    <option value="easy">Easy</option>
+                                    <option value="medium">Medium</option>
+                                    <option value="hard">Hard</option>
+                                </Form.Control>
+                            </Form.Group>
+                        </>
+                    )}
                 </Form>
             </Modal.Body>
             <Modal.Footer>
@@ -87,7 +116,7 @@ const AddQuizModal = ({ show, onHide, onQuizCreated }) => {
                     Cancel
                 </Button>
                 <Button variant="primary" onClick={handleSubmit} disabled={loading}>
-                    {loading ? 'Creating...' : 'Add Quiz'}
+                    {loading ? (quiz ? 'Updating...' : 'Creating...') : (quiz ? 'Update Quiz' : 'Add Quiz')}
                 </Button>
             </Modal.Footer>
         </Modal>
