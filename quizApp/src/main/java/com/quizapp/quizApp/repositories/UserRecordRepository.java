@@ -1,7 +1,9 @@
 package com.quizapp.quizApp.repositories;
 
 import com.quizapp.quizApp.model.UserRecord;
+import jakarta.transaction.Transactional;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
@@ -17,6 +19,12 @@ public interface UserRecordRepository extends JpaRepository<UserRecord, Long> {
 
     // Find a record by userId and quizId
     //UserRecord findByUserIdAndQuizId(Long userId, Long quizId);
+
+    @Transactional
+    @Modifying
+    @Query("DELETE FROM UserRecord ur WHERE ur.user.userId = :userId")
+    void deleteByUserId(@Param("userId") Long userId);
+
 
     // Find all records for a specific user
     List<UserRecord> findByUser_UserId(Long userId);

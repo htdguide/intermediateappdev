@@ -1,8 +1,10 @@
 package com.quizapp.quizApp.services;
 
 import com.quizapp.quizApp.model.User;
+import com.quizapp.quizApp.repositories.UserRecordRepository;
 import com.quizapp.quizApp.repositories.UserRepository;
 import com.quizapp.quizApp.utils.PasswordHashingUtil;
+import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -13,6 +15,8 @@ import java.util.Optional;
 public class UserService {
 
     private final UserRepository userRepository;
+    @Autowired
+    private UserRecordRepository userRecordRepository;
     private static final boolean LOGGING_ENABLED = true; // Logging flag
 
     @Autowired
@@ -77,15 +81,24 @@ public class UserService {
     }
 
     // Delete a user by ID
+    @Transactional
     public void deleteUserById(Long userId) {
         try {
             if (LOGGING_ENABLED) System.out.println("Deleting user by ID: " + userId);
+
+            // Delete associated UserRecord entries first
+            userRecordRepository.deleteByUserId(userId);
+
+            // Now delete the User
             userRepository.deleteById(userId);
+
+            if (LOGGING_ENABLED) System.out.println("User and associated records deleted successfully.");
         } catch (Exception e) {
             if (LOGGING_ENABLED) System.err.println("Error deleting user by ID: " + e.getMessage());
-            throw e;
+            throw e; // Re-throw the exception to propagate it
         }
     }
+
 
     // Update a user by ID
     public Optional<User> updateUserById(Long userId, User updatedUser) {
