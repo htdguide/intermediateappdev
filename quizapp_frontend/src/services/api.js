@@ -135,3 +135,13 @@ export const submitQuiz = async (userId, quizId, score) => {
         throw error.response ? error.response.data : 'Failed to submit quiz';
     }
 };
+
+export const validateAndSaveQuizSubmission = async (quizSubmission) => {
+    try {
+        const response = await api.post('/quiz-validation/validate-and-save', quizSubmission);
+        return response.data; // Return validation result
+    } catch (error) {
+        console.error('Error validating and saving quiz submission:', error);
+        throw error.response ? error.response.data : 'Failed to validate and save quiz submission';
+    }
+};
