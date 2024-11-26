@@ -38,6 +38,20 @@ public class Quiz implements Serializable {
     @JsonIgnore // Prevents recursion by ignoring quizQuestions during serialization
     private List<QuizQuestion> quizQuestions;
 
+    @Transient // This annotation ensures this field is not persisted in the database
+    @JsonProperty("status") // Expose this field in serialized JSON responses
+    public String getStatus() {
+        LocalDate today = LocalDate.now();
+
+        if (startDate.isAfter(today)) {
+            return "Upcoming"; // Quiz is not playable yet
+        } else if (endDate.isBefore(today)) {
+            return "Expired"; // Quiz is not playable anymore
+        } else {
+            return "Active"; // Quiz is playable
+        }
+    }
+
     public Quiz() {}
 
     public Quiz(String title, LocalDate startDate, LocalDate endDate) {

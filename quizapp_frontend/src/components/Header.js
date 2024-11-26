@@ -47,11 +47,18 @@ function Header({ user, logout }) {
                 </Nav.Item>
               </>
             ) : (
-              <Nav.Item>
-                <NavLink to="/login" className={({ isActive }) => isActive ? 'nav-link active' : 'nav-link'}>
-                  Login
-                </NavLink>
-              </Nav.Item>
+              <>
+                <Nav.Item>
+                  <NavLink to="/login" className={({ isActive }) => isActive ? 'nav-link active' : 'nav-link'}>
+                    Login
+                  </NavLink>
+                </Nav.Item>
+                <Nav.Item>
+                  <NavLink to="/register" className={({ isActive }) => isActive ? 'nav-link active' : 'nav-link'}>
+                    Register
+                  </NavLink>
+                </Nav.Item>
+              </>
             )}
           </Nav>
         </Navbar.Collapse>
