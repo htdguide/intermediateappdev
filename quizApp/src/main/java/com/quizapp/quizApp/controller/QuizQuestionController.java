@@ -1,12 +1,17 @@
 package com.quizapp.quizApp.controller;
 
+import com.quizapp.quizApp.dto.QuizQuestionDTO;
+import com.quizapp.quizApp.model.Question;
 import com.quizapp.quizApp.model.QuizQuestion;
 import com.quizapp.quizApp.services.QuizQuestionService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/quiz-questions")
@@ -32,17 +37,36 @@ public class QuizQuestionController {
         }
     }
 
-    // Get all questions for a specific quiz by quizId
     @GetMapping("/quiz/{quizId}")
-    public List<QuizQuestion> getQuestionsByQuizId(@PathVariable Long quizId) {
+    public List<QuizQuestionDTO> getQuestionsByQuizId(@PathVariable Long quizId) {
         try {
             if (LOGGING_ENABLED) System.out.println("Fetching questions for quiz ID: " + quizId);
-            return quizQuestionService.getQuestionsByQuizId(quizId);
+
+            List<QuizQuestion> quizQuestions = quizQuestionService.getQuestionsByQuizId(quizId);
+
+            // Map each QuizQuestion to a QuizQuestionDTO
+            return quizQuestions.stream().map(quizQuestion -> {
+                Question question = quizQuestion.getQuestion();
+                QuizQuestionDTO dto = new QuizQuestionDTO();
+                dto.setQuestionId(question.getQuestionId());
+                dto.setText(question.getText());
+                dto.setCategory(question.getCategory());
+                dto.setDifficulty(question.getDifficulty().name());
+
+                // Combine correct and incorrect answers, then shuffle
+                List<String> options = new ArrayList<>(question.getIncorrectAnswers());
+                options.add(question.getAnswer());
+                Collections.shuffle(options); // Randomize options
+
+                dto.setOptions(options);
+                return dto;
+            }).collect(Collectors.toList());
         } catch (Exception e) {
             if (LOGGING_ENABLED) System.err.println("Error fetching questions for quiz ID: " + e.getMessage());
             throw e;
         }
     }
+
 
     // Get all quizzes containing a specific question by questionId
     @GetMapping("/question/{questionId}")
