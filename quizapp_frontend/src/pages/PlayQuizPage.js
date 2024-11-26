@@ -1,7 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useParams } from 'react-router-dom';
 import { Container, Row, Col, Card, Form, Button, Alert } from 'react-bootstrap';
-import { getQuizQuestions, getUserRecordByUserIdAndQuizId, saveOrUpdateUserRecord } from '../services/api';
+import { getQuizQuestions, validateAndSaveQuizSubmission } from '../services/api';
 
 // Utility function to shuffle an array
 const shuffleArray = (array) => {
@@ -18,12 +18,13 @@ function PlayQuizPage() {
     const [questions, setQuestions] = useState([]);
     const [userAnswers, setUserAnswers] = useState({});
     const [score, setScore] = useState(null);
-    const [existingRecord, setExistingRecord] = useState(null);
+    const [feedback, setFeedback] = useState([]); // Store feedback for incorrect answers
     const [loading, setLoading] = useState(true); // Loading state
     const [error, setError] = useState(''); // For displaying error messages
+    const [quizSubmitted, setQuizSubmitted] = useState(false); // Track if the quiz has been submitted
 
     // Fetch quiz questions
-    const fetchQuizQuestions = async () => {
+    const fetchQuizQuestions = useCallback(async () => {
         try {
             console.log(`Fetching questions for quiz ID: ${quizId}`);
             const fetchedQuestions = await getQuizQuestions(quizId);
@@ -32,53 +33,32 @@ function PlayQuizPage() {
                 throw new Error('No questions found for this quiz.');
             }
 
+            // Map questions and shuffle options
             const formattedQuestions = fetchedQuestions.map((item) => {
-                if (!item.question) {
-                    throw new Error(`Invalid question data: ${JSON.stringify(item)}`);
-                }
-                // Shuffle options (incorrectAnswers and answer)
-                const shuffledOptions = shuffleArray([
-                    ...item.question.incorrectAnswers,
-                    item.question.answer,
-                ]);
-                return { ...item.question, shuffledOptions };
+                const shuffledOptions = shuffleArray(item.options); // Shuffle options array
+                return {
+                    ...item,
+                    shuffledOptions, // Add shuffled options to the question object
+                };
             });
 
-            setQuestions(formattedQuestions);
+            setQuestions(formattedQuestions); // Set formatted questions to state
+            console.log('Fetched and formatted quiz questions:', formattedQuestions); // Log formatted questions
         } catch (error) {
             console.error('Error fetching quiz questions:', error);
             setError('Failed to load quiz questions.');
         }
-    };
-
-    // Check user record
-    const checkUserRecord = async () => {
-        try {
-            console.log(`Checking for existing record for user ID ${user.userId} and quiz ID ${quizId}`);
-            const record = await getUserRecordByUserIdAndQuizId(user.userId, quizId);
-            if (record) {
-                console.log('Existing Record Found:', record);
-                setExistingRecord(record);
-            } else {
-                console.log('No existing record found.');
-                setExistingRecord(null);
-            }
-        } catch (error) {
-            console.warn('No existing record found or error fetching record:', error);
-            setExistingRecord(null);
-        }
-    };
+    }, [quizId]); // Dependency on quizId ensures it updates if quizId changes
 
     useEffect(() => {
         const initializePage = async () => {
             setLoading(true);
             await fetchQuizQuestions();
-            await checkUserRecord();
             setLoading(false);
         };
 
         initializePage();
-    }, [quizId, user.userId]);
+    }, [fetchQuizQuestions]);
 
     const handleOptionChange = (questionId, selectedOption) => {
         console.log(`Selected option for question ID ${questionId}: ${selectedOption}`);
@@ -101,24 +81,25 @@ function PlayQuizPage() {
             return;
         }
 
-        // Calculate score
-        let calculatedScore = 0;
-        questions.forEach((question) => {
-            if (userAnswers[question.questionId] === question.answer) {
-                calculatedScore += 1;
-            }
-        });
-        console.log(`Final Score: ${calculatedScore}`);
-        setScore(calculatedScore);
+        // Prepare submission payload
+        const quizSubmission = {
+            quizId: Number(quizId),
+            userId: user.userId,
+            answers: userAnswers, // This is the map of questionId -> selectedOption
+        };
 
         try {
-            console.log('Saving or updating quiz record...');
-            const record = await saveOrUpdateUserRecord(user.userId, quizId, calculatedScore);
-            console.log('Quiz Record Saved/Updated:', record);
-            setExistingRecord(record);
+            console.log('Validating and saving quiz submission...');
+            const validationResult = await validateAndSaveQuizSubmission(quizSubmission);
+
+            // Update score and feedback
+            console.log('Validation Result:', validationResult);
+            setScore(validationResult.score);
+            setFeedback(validationResult.feedback); // Set feedback for questions
+            setQuizSubmitted(true); // Mark quiz as submitted
         } catch (error) {
             console.error('Error submitting quiz:', error);
-            setError('Error submitting your quiz record. Please try again later.');
+            setError('Error submitting your quiz. Please try again later.');
         }
     };
 
@@ -130,61 +111,73 @@ function PlayQuizPage() {
         return <Alert variant="danger" className="mt-4">{error}</Alert>;
     }
 
-    if (score !== null) {
-        return (
-            <Container className="mt-5">
-                <Row className="justify-content-center">
-                    <Col md={8} className="text-center">
-                        <h2>Your Score: {score} / {questions.length}</h2>
-                        {existingRecord && (
-                            <p className="text-muted">
-                                Your previous score: {existingRecord.score} (played on {new Date(existingRecord.playedAt).toLocaleString()})
-                            </p>
-                        )}
-                        <p className="text-success">Your latest score has been saved successfully!</p>
-                        <Button variant="primary" onClick={() => window.location.reload()}>
-                            Retake Quiz
-                        </Button>
-                    </Col>
-                </Row>
-            </Container>
-        );
-    }
-
     return (
         <Container className="mt-5">
+            {score !== null && (
+                <Row className="justify-content-center mb-4">
+                    <Col md={8} className="text-center">
+                        <h2>Your Score: {score} / {questions.length}</h2>
+                    </Col>
+                </Row>
+            )}
             <Row className="justify-content-center">
                 <Col md={8}>
                     <h3 className="text-center mb-4">Quiz Questions</h3>
                     <Form>
-                        {questions.map((question, index) => (
-                            <Card key={question.questionId} className="mb-4">
-                                <Card.Body>
-                                    <Card.Title>
-                                        Question {index + 1}: {question.text}
-                                    </Card.Title>
-                                    <div className="mt-3">
-                                        {question.shuffledOptions.map((option, idx) => (
-                                            <Form.Check
-                                                type="radio"
-                                                key={idx}
-                                                id={`q${question.questionId}-option${idx}`}
-                                                name={`question-${question.questionId}`}
-                                                label={option}
-                                                value={option}
-                                                onChange={() => handleOptionChange(question.questionId, option)}
-                                                checked={userAnswers[question.questionId] === option}
-                                            />
-                                        ))}
-                                    </div>
-                                </Card.Body>
-                            </Card>
-                        ))}
-                        <div className="text-center mt-4">
-                            <Button variant="success" onClick={handleSubmitQuiz}>
-                                Submit Quiz
-                            </Button>
-                        </div>
+                        {questions.map((question, index) => {
+                            const feedbackItem = feedback.find(
+                                (item) => item.questionId === question.questionId
+                            );
+                            return (
+                                <Card key={question.questionId} className="mb-4">
+                                    <Card.Body>
+                                        <Card.Title>
+                                            Question {index + 1}: {question.text}
+                                        </Card.Title>
+                                        <div className="mt-3">
+                                            {question.shuffledOptions.map((option, idx) => {
+                                                const isSelected = userAnswers[question.questionId] === option;
+                                                const isCorrect = feedbackItem?.correctAnswer === option;
+                                                const isWrongSelected =
+                                                    isSelected && !isCorrect && quizSubmitted;
+
+                                                return (
+                                                    <Form.Check
+                                                        type="radio"
+                                                        key={idx}
+                                                        id={`q${question.questionId}-option${idx}`}
+                                                        name={`question-${question.questionId}`}
+                                                        label={option}
+                                                        value={option}
+                                                        onChange={() => handleOptionChange(question.questionId, option)}
+                                                        checked={isSelected}
+                                                        className={`${
+                                                            isWrongSelected
+                                                                ? 'text-danger'
+                                                                : isCorrect && quizSubmitted
+                                                                ? 'text-success'
+                                                                : ''
+                                                        }`}
+                                                    />
+                                                );
+                                            })}
+                                        </div>
+                                        {quizSubmitted && feedbackItem && !feedbackItem.correct && (
+                                            <div className="mt-3 text-success">
+                                                <strong>Correct Answer:</strong> {feedbackItem.correctAnswer}
+                                            </div>
+                                        )}
+                                    </Card.Body>
+                                </Card>
+                            );
+                        })}
+                        {!quizSubmitted && (
+                            <div className="text-center mt-4">
+                                <Button variant="success" onClick={handleSubmitQuiz}>
+                                    Submit Quiz
+                                </Button>
+                            </div>
+                        )}
                     </Form>
                 </Col>
             </Row>
