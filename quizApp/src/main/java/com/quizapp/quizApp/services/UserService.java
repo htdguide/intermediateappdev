@@ -156,4 +156,9 @@ public class UserService {
         }
     }
 
+    // UserService.java
+    public boolean emailExists(String email) {
+        return userRepository.findByEmail(email).isPresent();
+    }
+
 }

@@ -39,7 +39,7 @@ public class User implements Serializable {
 
     @Enumerated(EnumType.STRING)
     @Column(name = "usertype", nullable = false)
-    private UserType usertype;
+    private UserType usertype = UserType.PLAYER;
 
     private static final boolean LOGGING_ENABLED = true; // Debugging flag
 

@@ -1,6 +1,7 @@
 package com.quizapp.quizApp.controller;
 
 import com.quizapp.quizApp.model.User;
+import com.quizapp.quizApp.model.UserType;
 import com.quizapp.quizApp.services.UserService;
 import com.quizapp.quizApp.utils.PasswordHashingUtil;
 import jakarta.validation.Valid;
@@ -78,18 +79,29 @@ public class UserController {
 
     // Create or update a user
     @PostMapping
-    public User saveUser(@RequestBody @Valid User user) {
+    public ResponseEntity<?> saveUser(@RequestBody @Valid User user) {
         try {
             if (LOGGING_ENABLED) System.out.println("Controller: Saving user: " + user.getEmail());
+
+            // Check if email already exists
+            if (userService.emailExists(user.getEmail())) {
+                return ResponseEntity.badRequest().body("Email is already registered.");
+            }
+
+            // Set default usertype if not provided
+            if (user.getUsertype() == null) {
+                user.setUsertype(UserType.PLAYER);
+            }
 
             // Hash the password before saving the user
             String hashedPassword = PasswordHashingUtil.hashPassword(user.getPassword());
             user.setPassword(hashedPassword);
 
-            return userService.saveUser(user);
+            User savedUser = userService.saveUser(user);
+            return ResponseEntity.ok(savedUser);
         } catch (Exception e) {
             if (LOGGING_ENABLED) System.err.println("Error in controller while saving user: " + e.getMessage());
-            throw e;
+            return ResponseEntity.status(500).body("Failed to save user.");
         }
     }
 

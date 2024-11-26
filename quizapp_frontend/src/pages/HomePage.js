@@ -19,6 +19,9 @@ function HomePage() {
             <Button as={Link} to="/login" variant="secondary" className="mx-2">
               Login
             </Button>
+            <Button as={Link} to="/register" variant="success" className="mx-2">
+              Register
+            </Button>
           </div>
         </Col>
       </Row>
