@@ -68,6 +68,7 @@ const LoginPage = ({ setUser }) => {
                 <button type="submit" disabled={isLoading}>
                     {isLoading ? 'Logging in...' : 'Login'}
                 </button>
+                <a href="/reset-password">Forgot Password?</a>
             </form>
         </div>
     );

@@ -4,6 +4,7 @@ import com.quizapp.quizApp.model.Question;
 import com.quizapp.quizApp.model.QuestionCategory;
 import com.quizapp.quizApp.model.Quiz;
 import com.quizapp.quizApp.model.QuizQuestion;
+import com.quizapp.quizApp.model.User;
 import com.quizapp.quizApp.repositories.QuizQuestionRepository;
 import com.quizapp.quizApp.repositories.QuizRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -22,12 +23,18 @@ public class QuizCreationService {
     private final QuizRepository quizRepository;
     private final QuestionService questionService;
     private final QuizQuestionRepository quizQuestionRepository;
+    private final EmailService emailService;  // Add EmailService
+    private final UserService userService;
 
     @Autowired
-    public QuizCreationService(QuizRepository quizRepository, QuestionService questionService, QuizQuestionRepository quizQuestionRepository) {
+    public QuizCreationService(QuizRepository quizRepository, QuestionService questionService,
+                               QuizQuestionRepository quizQuestionRepository, EmailService emailService,
+                               UserService userService) {
         this.quizRepository = quizRepository;
         this.questionService = questionService;
         this.quizQuestionRepository = quizQuestionRepository;
+        this.emailService = emailService;
+        this.userService = userService;
     }
 
     public Quiz createQuizWithRandomQuestions(String title, LocalDate startDate, LocalDate endDate, String category, String difficulty) {
@@ -55,6 +62,9 @@ public class QuizCreationService {
             linkQuestionsToQuiz(quiz, questions);
             if (LOGGING_ENABLED) System.out.println("Questions linked to the quiz successfully.");
 
+            // Step 5: Notify all users about the new quiz
+            notifyUsersOfNewQuiz(quiz);
+
             return quiz;
         } catch (Exception e) {
             if (LOGGING_ENABLED) System.err.println("Error in creating quiz with random questions: " + e.getMessage());
@@ -64,21 +74,16 @@ public class QuizCreationService {
 
     // Method to build the API URL using the category and difficulty
     private String buildApiUrl(String category, String difficulty) {
-        // Log category and difficulty
         if (LOGGING_ENABLED) System.out.println("Building API URL with category: " + category + " and difficulty: " + difficulty);
 
-        // Define the amount and type variables
         int amount = 10;  // Default value for amount
         String type = "multiple";  // Default value for question type
 
-        // Get the Category enum from the category name
         QuestionCategory catEnum = QuestionCategory.fromString(category);
         int categoryId = catEnum.getCategoryId();
 
-        // Log the generated category ID
         if (LOGGING_ENABLED) System.out.println("Mapped category ID: " + categoryId);
 
-        // Construct and return the API URL
         return "https://opentdb.com/api.php?amount=" + amount + "&category=" + categoryId + "&difficulty=" + difficulty + "&type=" + type;
     }
 
@@ -86,18 +91,15 @@ public class QuizCreationService {
         if (LOGGING_ENABLED) System.out.println("Fetching random " + numberOfQuestions + " questions from category: " + category);
         List<Question> allQuestions = questionService.getQuestionsByCategory(category, true);
 
-        // Shuffle the list and get the first `numberOfQuestions` items
         Collections.shuffle(allQuestions);
         List<Question> randomQuestions = allQuestions.stream()
                 .limit(numberOfQuestions)
                 .collect(Collectors.toList());
 
-        // Log the result of the random question fetch
         if (LOGGING_ENABLED) System.out.println("Random questions fetched: " + randomQuestions.size());
         return randomQuestions;
     }
 
-    // Method to create and save a quiz
     private Quiz createQuiz(String title, LocalDate startDate, LocalDate endDate) {
         if (LOGGING_ENABLED) System.out.println("Creating quiz with title: " + title);
         Quiz quiz = new Quiz();
@@ -107,7 +109,6 @@ public class QuizCreationService {
         return quizRepository.save(quiz);
     }
 
-    // Method to link questions to a quiz
     private void linkQuestionsToQuiz(Quiz quiz, List<Question> questions) {
         for (Question question : questions) {
             if (LOGGING_ENABLED) System.out.println("Linking question ID: " + question.getQuestionId() + " to quiz ID: " + quiz.getQuizId());
@@ -115,6 +116,33 @@ public class QuizCreationService {
             quizQuestion.setQuiz(quiz);
             quizQuestion.setQuestion(question);
             quizQuestionRepository.save(quizQuestion);
+        }
+    }
+
+    private void notifyUsersOfNewQuiz(Quiz quiz) {
+        try {
+            List<User> users = userService.getAllUsers(); // Fetch all users
+
+            if (users.isEmpty()) {
+                if (LOGGING_ENABLED) System.out.println("No users found to notify.");
+                return;
+            }
+
+            for (User user : users) {
+                String subject = "New Quiz Created: " + quiz.getTitle();
+                String body = "Hello " + user.getFirstName() + ",\n\n" +
+                        "A new quiz has been created on QuizApp:\n" +
+                        "Title: " + quiz.getTitle() + "\n" +
+                        "Start Date: " + quiz.getStartDate() + "\n" +
+                        "End Date: " + quiz.getEndDate() + "\n\n" +
+                        "Good luck!\nQuizApp Team";
+
+                emailService.sendEmail(user.getEmail(), subject, body, "dholakiaharshil7@gmail.com");
+            }
+
+            if (LOGGING_ENABLED) System.out.println("Notification emails sent to all users.");
+        } catch (Exception e) {
+            if (LOGGING_ENABLED) System.err.println("Error notifying users: " + e.getMessage());
         }
     }
 }

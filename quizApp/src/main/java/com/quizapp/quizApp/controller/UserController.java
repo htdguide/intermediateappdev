@@ -2,7 +2,9 @@ package com.quizapp.quizApp.controller;
 
 import com.quizapp.quizApp.model.User;
 import com.quizapp.quizApp.model.UserType;
+import com.quizapp.quizApp.services.EmailService;
 import com.quizapp.quizApp.services.UserService;
+import com.quizapp.quizApp.services.VerificationCodeService;
 import com.quizapp.quizApp.utils.PasswordHashingUtil;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -19,11 +21,15 @@ import java.util.Optional;
 public class UserController {
 
     private final UserService userService;
+    private final EmailService emailService;
+    private final VerificationCodeService verificationCodeService;
     private static final boolean LOGGING_ENABLED = false; // Logging flag
 
     @Autowired
-    public UserController(UserService userService) {
+    public UserController(UserService userService, EmailService emailService, VerificationCodeService verificationCodeService) {
         this.userService = userService;
+        this.emailService = emailService;
+        this.verificationCodeService = verificationCodeService;
     }
 
     // Get all users
@@ -159,5 +165,95 @@ public class UserController {
             throw e;
         }
     }
+
+    @GetMapping("/test-email")
+    public ResponseEntity<String> testEmail(
+            @RequestParam String email,
+            @RequestParam(required = false) String replyTo // Optional reply-to parameter
+    ) {
+        boolean emailSent = emailService.sendEmail(
+                email,
+                "Test Email from QuizApp",
+                "This is a test email to verify the email service is working.",
+                replyTo // Pass the reply-to address to the email service
+        );
+
+        if (emailSent) {
+            return ResponseEntity.ok("Email sent successfully to: " + email +
+                    (replyTo != null ? " with reply-to: " + replyTo : ""));
+        } else {
+            return ResponseEntity.status(500).body("Failed to send email to: " + email);
+        }
+    }
+
+    @PostMapping("/reset-password-request")
+    public ResponseEntity<String> requestPasswordReset(@RequestParam String email) {
+        try {
+            Optional<User> userOptional = userService.getUserByEmail(email);
+
+            if (userOptional.isPresent()) {
+                // Generate a verification code
+                String verificationCode = verificationCodeService.generateCode(email);
+
+                // Send the verification code via email
+                emailService.sendEmail(
+                        email,
+                        "Password Reset Request",
+                        "Your password reset verification code is: " + verificationCode,
+                        "dholakiaharshil7@gmail.com"
+                );
+
+                return ResponseEntity.ok("Password reset email sent successfully.");
+            } else {
+                return ResponseEntity.status(404).body("Email address not found.");
+            }
+        } catch (Exception e) {
+            return ResponseEntity.status(500).body("Error processing password reset request.");
+        }
+    }
+
+    @PostMapping("/verify-reset-code")
+    public ResponseEntity<String> verifyResetCode(
+            @RequestParam String email,
+            @RequestParam String code
+    ) {
+        boolean isValid = verificationCodeService.validateCode(email, code);
+
+        if (isValid) {
+            return ResponseEntity.ok("Verification code is valid.");
+        } else {
+            return ResponseEntity.status(400).body("Invalid or expired verification code.");
+        }
+    }
+
+    @PostMapping("/reset-password")
+    public ResponseEntity<String> resetPassword(
+            @RequestParam String email,
+            @RequestParam String code,
+            @RequestParam String newPassword
+    ) {
+        boolean isValid = verificationCodeService.validateCode(email, code);
+
+        if (isValid) {
+            // Update the user's password
+            Optional<User> userOptional = userService.getUserByEmail(email);
+
+            if (userOptional.isPresent()) {
+                User user = userOptional.get();
+                user.setPassword(PasswordHashingUtil.hashPassword(newPassword));
+                userService.saveUser(user);
+
+                // Remove the verification code after successful reset
+                verificationCodeService.removeCode(email);
+
+                return ResponseEntity.ok("Password has been reset successfully.");
+            } else {
+                return ResponseEntity.status(404).body("User not found.");
+            }
+        } else {
+            return ResponseEntity.status(400).body("Invalid or expired verification code.");
+        }
+    }
+
 
 }

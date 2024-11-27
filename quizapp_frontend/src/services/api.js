@@ -145,3 +145,27 @@ export const validateAndSaveQuizSubmission = async (quizSubmission) => {
         throw error.response ? error.response.data : 'Failed to validate and save quiz submission';
     }
 };
+
+// Request password reset
+export const requestPasswordReset = async (email) => {
+    const response = await axios.post(`${API_BASE_URL}/users/reset-password-request`, null, {
+        params: { email },
+    });
+    return response.data;
+};
+
+// Verify reset code
+export const verifyResetCode = async (email, code) => {
+    const response = await axios.post(`${API_BASE_URL}/users/verify-reset-code`, null, {
+        params: { email, code },
+    });
+    return response.data;
+};
+
+// Reset password
+export const resetPassword = async (email, code, newPassword) => {
+    const response = await axios.post(`${API_BASE_URL}/users/reset-password`, null, {
+        params: { email, code, newPassword },
+    });
+    return response.data;
+};

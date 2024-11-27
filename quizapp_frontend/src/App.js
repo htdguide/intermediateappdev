@@ -9,6 +9,7 @@ import UserPage from './pages/UserPage';
 import AdminPage from './pages/AdminPage';
 import PlayQuizPage from './pages/PlayQuizPage';
 import RegisterPage from './pages/RegisterPage';
+import ResetPasswordPage from './pages/ResetPasswordPage';
 import ProtectedRoute from './components/ProtectedRoute';
 
 const App = () => {
@@ -35,6 +36,7 @@ const App = () => {
                     <Route path="/" element={<Home />} />
                     <Route path="/login" element={<LoginPage setUser={setUser} />} />
                     <Route path="/register" element={<RegisterPage />} />
+                    <Route path="/reset-password" element={<ResetPasswordPage />} />
                     <Route
                         path="/user"
                         element={
