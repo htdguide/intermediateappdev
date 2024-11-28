@@ -17,14 +17,15 @@ public interface UserRecordRepository extends JpaRepository<UserRecord, Long> {
     // Find a record by userId and quizId
     UserRecord findByUser_UserIdAndQuiz_QuizId(Long userId, Long quizId);
 
-    // Find a record by userId and quizId
-    //UserRecord findByUserIdAndQuizId(Long userId, Long quizId);
-
     @Transactional
     @Modifying
     @Query("DELETE FROM UserRecord ur WHERE ur.user.userId = :userId")
     void deleteByUserId(@Param("userId") Long userId);
 
+    @Transactional
+    @Modifying
+    @Query("DELETE FROM UserRecord ur WHERE ur.quiz.quizId = :quizId")
+    void deleteByQuizId(@Param("quizId") Long quizId);
 
     // Find all records for a specific user
     List<UserRecord> findByUser_UserId(Long userId);

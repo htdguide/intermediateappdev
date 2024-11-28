@@ -23,7 +23,7 @@ public class QuestionController {
     }
 
     // Get all questions
-    @GetMapping
+    @GetMapping()
     public List<Question> getAllQuestions() {
         try {
             if (LOGGING_ENABLED) System.out.println("Fetching all questions.");

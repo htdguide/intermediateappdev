@@ -2,6 +2,8 @@ package com.quizapp.quizApp.services;
 
 import com.quizapp.quizApp.model.Quiz;
 import com.quizapp.quizApp.repositories.QuizRepository;
+import com.quizapp.quizApp.repositories.UserRecordRepository;
+import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.data.web.SpringDataWebProperties;
 import org.springframework.data.domain.Page;
@@ -16,11 +18,13 @@ import java.util.Optional;
 public class QuizService {
 
     private final QuizRepository quizRepository;
+    private final UserRecordRepository userRecordRepository;
     private static final boolean LOGGING_ENABLED = true;
 
     @Autowired
-    public QuizService(QuizRepository quizRepository) {
+    public QuizService(QuizRepository quizRepository, UserRecordRepository userRecordRepository) {
         this.quizRepository = quizRepository;
+        this.userRecordRepository = userRecordRepository;
     }
 
     // Get all quizzes
@@ -112,12 +116,22 @@ public class QuizService {
     }
 
     // Delete a quiz by ID
+    @Transactional
     public void deleteQuizById(Long quizId) {
         try {
             if (LOGGING_ENABLED) System.out.println("Deleting quiz by ID: " + quizId);
+
+            // Delete associated records in dependent table(s) first
+            userRecordRepository.deleteByQuizId(quizId);
+
+            // Now delete the quiz
             quizRepository.deleteById(quizId);
+
+            if (LOGGING_ENABLED) System.out.println("Quiz and associated records deleted successfully.");
         } catch (Exception e) {
-            if (LOGGING_ENABLED) System.err.println("Error deleting quiz: " + e.getMessage());
+            if (LOGGING_ENABLED) System.err.println("Error deleting quiz by ID: " + e.getMessage());
+            throw e; // Re-throw the exception to propagate it
         }
     }
+
 }
