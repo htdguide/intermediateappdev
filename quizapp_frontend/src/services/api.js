@@ -169,3 +169,14 @@ export const resetPassword = async (email, code, newPassword) => {
     });
     return response.data;
 };
+
+// Get all user records for a specific user by userId
+export const getUserRecordsByUserId = async (userId) => {
+    try {
+        const response = await api.get(`${API_BASE_URL}/user-records/user/${userId}`);
+        return response.data; // Return the list of user records
+    } catch (error) {
+        console.error(`Error fetching user records for userId ${userId}:`, error);
+        throw error.response ? error.response.data : 'Failed to fetch user records';
+    }
+};

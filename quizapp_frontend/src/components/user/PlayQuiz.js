@@ -1,34 +1,49 @@
 import React, { useState, useEffect } from 'react';
-import { getAllQuizzes } from '../services/api';
+import { getAllQuizzes, getUserRecordsByUserId } from '../../services/api';
 import { Container, Row, Col, Card, Button, Alert, Spinner } from 'react-bootstrap';
 import { useNavigate } from 'react-router-dom';
 
 const PlayQuiz = () => {
     const [quizzes, setQuizzes] = useState([]);
+    const [userRecords, setUserRecords] = useState([]);
     const [error, setError] = useState('');
     const [loading, setLoading] = useState(true);
     const navigate = useNavigate();
 
     useEffect(() => {
-        const fetchQuizzes = async () => {
+        const fetchData = async () => {
             try {
-                const data = await getAllQuizzes();
-                setQuizzes(data);
+                const user = JSON.parse(localStorage.getItem('user'));
+                if (!user) throw new Error('User not found');
+
+                const [quizzesData, userRecordsData] = await Promise.all([
+                    getAllQuizzes(),
+                    getUserRecordsByUserId(user.userId),
+                ]);
+
+                setQuizzes(quizzesData);
+                setUserRecords(userRecordsData);
                 setLoading(false);
             } catch (err) {
-                setError(err.message || 'Failed to load quizzes');
+                setError(err.message || 'Failed to load data');
                 setLoading(false);
             }
         };
 
-        fetchQuizzes();
+        fetchData();
     }, []);
 
     const playQuiz = (quizId) => {
         navigate(`/play-quiz/${quizId}`);
     };
 
-    const getFilteredQuizzes = (status) => quizzes.filter((quiz) => quiz.status === status);
+    const getFilteredQuizzes = (status) =>
+        quizzes.filter((quiz) => quiz.status === status && !userRecords.some((record) => record.quiz.quizId === quiz.quizId));
+
+    const getPlayedQuizzes = () =>
+        quizzes.filter((quiz) =>
+            userRecords.some((record) => record.quiz.quizId === quiz.quizId)
+        );
 
     return (
         <Container>
@@ -42,6 +57,39 @@ const PlayQuiz = () => {
             )}
             {!loading && (
                 <>
+                    <h4 className="text-center text-info">Played Quizzes</h4>
+                    {getPlayedQuizzes().length > 0 ? (
+                        <Row className="gy-4">
+                            {getPlayedQuizzes().map((quiz) => {
+                                const record = userRecords.find((record) => record.quiz.quizId === quiz.quizId);
+                                return (
+                                    <Col xs={12} md={6} lg={4} key={quiz.quizId}>
+                                        <Card className="h-100 shadow-sm">
+                                            <Card.Body>
+                                                <Card.Title>{quiz.title}</Card.Title>
+                                                <Card.Text>{quiz.description || 'No description available'}</Card.Text>
+                                                <Card.Text>
+                                                    <strong>Start Date:</strong> {quiz.startDate}
+                                                </Card.Text>
+                                                <Card.Text>
+                                                    <strong>End Date:</strong> {quiz.endDate}
+                                                </Card.Text>
+                                                <Card.Text>
+                                                    <strong>Your Score:</strong> {record.score}
+                                                </Card.Text>
+                                                <Button variant="secondary" className="w-100" disabled>
+                                                    Already Played
+                                                </Button>
+                                            </Card.Body>
+                                        </Card>
+                                    </Col>
+                                );
+                            })}
+                        </Row>
+                    ) : (
+                        <p className="text-muted text-center">No played quizzes available at the moment.</p>
+                    )}
+
                     {['Active', 'Upcoming', 'Expired'].map((status) => (
                         <div key={status}>
                             <h4 className={`text-center text-${status === 'Active' ? 'success' : status === 'Upcoming' ? 'warning' : 'danger'}`}>
