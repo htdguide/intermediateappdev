@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Tab, Tabs } from 'react-bootstrap';
-import Dashboard from '../components/user/dashboard';
+import Dashboard from '../components/user/Dashboard';
 import PlayQuiz from '../components/user/PlayQuiz';
 import { useSearchParams } from 'react-router-dom';
 
