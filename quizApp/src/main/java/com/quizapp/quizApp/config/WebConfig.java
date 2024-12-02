@@ -10,7 +10,10 @@ public class WebConfig implements WebMvcConfigurer {
     @Override
     public void addCorsMappings(CorsRegistry registry) {
         registry.addMapping("/**")  // Apply to all routes
-                .allowedOrigins("http://localhost:3000")  // Frontend origin
+                .allowedOrigins(
+                        "http://localhost:3000",  // Localhost for development
+                        "https://quizapp-frontend.onrender.com"  // Deployed frontend on Render
+                )
                 .allowedMethods("GET", "POST", "PUT", "DELETE")  // Allowed HTTP methods
                 .allowedHeaders("*")  // Allow all headers
                 .allowCredentials(true);  // Allow credentials like cookies or authorization headers
