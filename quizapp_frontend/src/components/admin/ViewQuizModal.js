@@ -15,9 +15,7 @@ const ViewQuizModal = ({ show, onHide, quizId }) => {
                 try {
                     const fetchedQuestions = await getQuizQuestions(quizId);
                     console.log('Fetched Questions:', fetchedQuestions); // Debugging
-                    // Extract the `question` field from each fetched question
-                    const formattedQuestions = fetchedQuestions.map((item) => item.question);
-                    setQuestions(formattedQuestions);
+                    setQuestions(fetchedQuestions);
                 } catch (err) {
                     console.error('Error fetching questions:', err);
                     setError(err.message || 'Failed to load questions');
@@ -53,20 +51,18 @@ const ViewQuizModal = ({ show, onHide, quizId }) => {
                                     </Card.Title>
                                     <div className="mt-3">
                                         <ul>
-                                            {[...question.incorrectAnswers, question.answer].map(
-                                                (option, idx) => (
-                                                    <li
-                                                        key={idx}
-                                                        className={
-                                                            option === question.answer
-                                                                ? 'text-success font-weight-bold'
-                                                                : 'text-muted'
-                                                        }
-                                                    >
-                                                        {option}
-                                                    </li>
-                                                )
-                                            )}
+                                            {question.options.map((option, idx) => (
+                                                <li
+                                                    key={idx}
+                                                    className={
+                                                        question.options.indexOf(option) === 2 // Assuming correct answer at index 2
+                                                            ? 'text-success font-weight-bold'
+                                                            : 'text-muted'
+                                                    }
+                                                >
+                                                    {option}
+                                                </li>
+                                            ))}
                                         </ul>
                                     </div>
                                 </Card.Body>
