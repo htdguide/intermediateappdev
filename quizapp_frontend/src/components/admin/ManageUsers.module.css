@@ -1,0 +1,69 @@
+.manageUsersContainer {
+    padding: 20px;
+    background: #ffffff;
+    border-radius: 10px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+}
+
+.title {
+    font-size: 1.75rem;
+    font-weight: bold;
+    color: #007bff;
+    margin-bottom: 20px;
+    text-align: center;
+}
+
+.addButton {
+    background: #007bff;
+    border: none;
+    font-size: 1rem;
+    padding: 10px 15px;
+    border-radius: 5px;
+    transition: background-color 0.3s ease, transform 0.2s ease;
+}
+
+.addButton:hover {
+    background: #0056b3;
+    transform: scale(1.05);
+    color: #fff;
+}
+
+.userTable {
+    border-radius: 5px;
+    overflow: hidden;
+}
+
+.userTable th {
+    background: #007bff;
+    color: #ffffff;
+    font-weight: bold;
+    text-align: center;
+    padding: 10px;
+}
+
+.userTable td {
+    text-align: center;
+    vertical-align: middle;
+    padding: 10px;
+}
+
+.actionButton {
+    font-size: 0.9rem;
+    padding: 5px 10px;
+    border-radius: 5px;
+    transition: background-color 0.3s ease, transform 0.2s ease;
+}
+
+.actionButton:hover {
+    transform: scale(1.1);
+}
+
+.actionButton.info {
+    background: #17a2b8;
+    border: none;
+}
+
+.actionButton.danger {
+    background: #dc3545;
+    border: none;
+}

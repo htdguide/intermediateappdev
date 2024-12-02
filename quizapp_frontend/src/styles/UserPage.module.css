@@ -1,0 +1,43 @@
+.userPageContainer {
+    background: linear-gradient(135deg, #007bff, #6c757d);
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+  }
+  
+  .welcomeMessage {
+    color: #ffffff;
+    font-size: 2rem;
+    font-weight: bold;
+  }
+  
+  .customTabs {
+    background: #ffffff;
+    border-radius: 5px;
+    box-shadow: 0 5px 10px rgba(0, 0, 0, 0.1);
+    padding: 10px;
+  }
+  
+  .tabTitle {
+    font-size: 1.1rem;
+    font-weight: bold;
+  }
+  
+  .alertContainer {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+  }
+  
+  .alert {
+    max-width: 400px;
+    font-size: 1rem;
+  }
+  
+  .loadingMessage {
+    color: #6c757d;
+    font-size: 1.2rem;
+    font-style: italic;
+  }
+  

@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { requestPasswordReset, verifyResetCode, resetPassword } from '../services/api';
 import { useNavigate } from 'react-router-dom';
+import styles from '../styles/ResetPasswordPage.module.css';
 
 const ResetPasswordPage = () => {
     const [email, setEmail] = useState('');
@@ -61,55 +62,60 @@ const ResetPasswordPage = () => {
     };
 
     return (
-        <div className="reset-password-container">
-            <h2>Reset Password</h2>
-            {errorMessage && <p style={{ color: 'red' }}>{errorMessage}</p>}
-            {successMessage && <p style={{ color: 'green' }}>{successMessage}</p>}
-            
-            {step === 1 && (
-                <form onSubmit={handleRequestCode}>
-                    <input
-                        type="email"
-                        value={email}
-                        onChange={(e) => setEmail(e.target.value)}
-                        placeholder="Enter your email"
-                        required
-                    />
-                    <button type="submit" disabled={isLoading}>
-                        {isLoading ? 'Sending code...' : 'Send Verification Code'}
-                    </button>
-                </form>
-            )}
+        <div className={styles.resetPasswordContainer}>
+            <div className={styles.card}>
+                <h2 className={styles.title}>Reset Password</h2>
+                {errorMessage && <p className={styles.error}>{errorMessage}</p>}
+                {successMessage && <p className={styles.success}>{successMessage}</p>}
 
-            {step === 2 && (
-                <form onSubmit={handleVerifyCode}>
-                    <input
-                        type="text"
-                        value={code}
-                        onChange={(e) => setCode(e.target.value)}
-                        placeholder="Enter verification code"
-                        required
-                    />
-                    <button type="submit" disabled={isLoading}>
-                        {isLoading ? 'Verifying...' : 'Verify Code'}
-                    </button>
-                </form>
-            )}
+                {step === 1 && (
+                    <form onSubmit={handleRequestCode} className={styles.form}>
+                        <input
+                            type="email"
+                            value={email}
+                            onChange={(e) => setEmail(e.target.value)}
+                            placeholder="Enter your email"
+                            required
+                            className={styles.input}
+                        />
+                        <button type="submit" disabled={isLoading} className={styles.button}>
+                            {isLoading ? 'Sending code...' : 'Send Verification Code'}
+                        </button>
+                    </form>
+                )}
 
-            {step === 3 && (
-                <form onSubmit={handleResetPassword}>
-                    <input
-                        type="password"
-                        value={newPassword}
-                        onChange={(e) => setNewPassword(e.target.value)}
-                        placeholder="Enter new password"
-                        required
-                    />
-                    <button type="submit" disabled={isLoading}>
-                        {isLoading ? 'Resetting...' : 'Reset Password'}
-                    </button>
-                </form>
-            )}
+                {step === 2 && (
+                    <form onSubmit={handleVerifyCode} className={styles.form}>
+                        <input
+                            type="text"
+                            value={code}
+                            onChange={(e) => setCode(e.target.value)}
+                            placeholder="Enter verification code"
+                            required
+                            className={styles.input}
+                        />
+                        <button type="submit" disabled={isLoading} className={styles.button}>
+                            {isLoading ? 'Verifying...' : 'Verify Code'}
+                        </button>
+                    </form>
+                )}
+
+                {step === 3 && (
+                    <form onSubmit={handleResetPassword} className={styles.form}>
+                        <input
+                            type="password"
+                            value={newPassword}
+                            onChange={(e) => setNewPassword(e.target.value)}
+                            placeholder="Enter new password"
+                            required
+                            className={styles.input}
+                        />
+                        <button type="submit" disabled={isLoading} className={styles.button}>
+                            {isLoading ? 'Resetting...' : 'Reset Password'}
+                        </button>
+                    </form>
+                )}
+            </div>
         </div>
     );
 };

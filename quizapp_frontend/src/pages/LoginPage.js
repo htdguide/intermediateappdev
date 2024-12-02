@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { loginUser } from '../services/api';
 import { useNavigate } from 'react-router-dom';
+import styles from '../styles/LoginPage.module.css';
 
 const LoginPage = ({ setUser }) => {
     const [email, setEmail] = useState('');
@@ -47,29 +48,36 @@ const LoginPage = ({ setUser }) => {
     };
 
     return (
-        <div className="login-container">
-            <h2>Login</h2>
-            {errorMessage && <p style={{ color: 'red' }}>{errorMessage}</p>}
-            <form onSubmit={handleLogin}>
-                <input
-                    type="email"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    placeholder="Email"
-                    required
-                />
-                <input
-                    type="password"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    placeholder="Password"
-                    required
-                />
-                <button type="submit" disabled={isLoading}>
-                    {isLoading ? 'Logging in...' : 'Login'}
-                </button>
-                <a href="/reset-password">Forgot Password?</a>
-            </form>
+        <div className={styles.loginContainer}>
+            <div className={styles.loginCard}>
+                <h2 className={styles.title}>Welcome Back!</h2>
+                <p className={styles.subtitle}>Log in to access your account</p>
+                {errorMessage && <p className={styles.error}>{errorMessage}</p>}
+                <form onSubmit={handleLogin} className={styles.form}>
+                    <input
+                        type="email"
+                        value={email}
+                        onChange={(e) => setEmail(e.target.value)}
+                        placeholder="Email"
+                        className={styles.input}
+                        required
+                    />
+                    <input
+                        type="password"
+                        value={password}
+                        onChange={(e) => setPassword(e.target.value)}
+                        placeholder="Password"
+                        className={styles.input}
+                        required
+                    />
+                    <button type="submit" className={styles.button} disabled={isLoading}>
+                        {isLoading ? 'Logging in...' : 'Login'}
+                    </button>
+                    <a href="/reset-password" className={styles.forgotPassword}>
+                        Forgot Password?
+                    </a>
+                </form>
+            </div>
         </div>
     );
 };
