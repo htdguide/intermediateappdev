@@ -4,6 +4,7 @@ import { getAllQuizzes } from '../../services/api';
 import { Table, Button, Spinner, Alert, Container } from 'react-bootstrap';
 import AddQuizModal from './AddQuizModal';
 import ViewQuizModal from './ViewQuizModal';
+import styles from './ManageQuizzes.module.css';
 
 const ManageQuizzes = () => {
     const [quizzes, setQuizzes] = useState([]);
@@ -11,7 +12,7 @@ const ManageQuizzes = () => {
     const [loading, setLoading] = useState(true);
     const [showModal, setShowModal] = useState(false);
     const [editQuiz, setEditQuiz] = useState(null);
-    const [viewQuizId, setViewQuizId] = useState(null); // State to handle viewing a quiz
+    const [viewQuizId, setViewQuizId] = useState(null);
 
     useEffect(() => {
         const fetchQuizzes = async () => {
@@ -55,22 +56,22 @@ const ManageQuizzes = () => {
     };
 
     return (
-        <Container className="mt-4">
-            <h2 className="text-center mb-4">Manage Quizzes</h2>
+        <Container fluid className={styles.manageQuizzesContainer}>
+            <h2 className={`text-center mb-4 ${styles.title}`}>Manage Quizzes</h2>
             {error && <Alert variant="danger">{error}</Alert>}
             {loading ? (
-                <div className="text-center my-4">
+                <div className={styles.loadingContainer}>
                     <Spinner animation="border" variant="primary" />
                     <p className="text-muted mt-2">Loading quizzes...</p>
                 </div>
             ) : (
                 <>
-                    <div className="mb-3 text-end">
-                        <Button variant="primary" onClick={() => setShowModal(true)}>
+                    <div className={`mb-3 text-end ${styles.actionBar}`}>
+                        <Button variant="primary" className={styles.addButton} onClick={() => setShowModal(true)}>
                             Add Quiz
                         </Button>
                     </div>
-                    <Table bordered hover responsive>
+                    <Table bordered hover responsive className={styles.quizTable}>
                         <thead>
                             <tr>
                                 <th>#</th>
@@ -88,11 +89,11 @@ const ManageQuizzes = () => {
                                         <td>{quiz.title}</td>
                                         <td>{quiz.startDate || 'N/A'}</td>
                                         <td>{quiz.endDate || 'N/A'}</td>
-                                        <td>
+                                        <td className={styles.actionButtons}>
                                             <Button
                                                 variant="info"
                                                 size="sm"
-                                                className="me-2"
+                                                className={styles.actionButton}
                                                 onClick={() => setEditQuiz(quiz)}
                                             >
                                                 Edit
@@ -100,7 +101,7 @@ const ManageQuizzes = () => {
                                             <Button
                                                 variant="danger"
                                                 size="sm"
-                                                className="me-2"
+                                                className={styles.actionButton}
                                                 onClick={() => handleQuizDeleted(quiz.quizId)}
                                             >
                                                 Delete
@@ -108,6 +109,7 @@ const ManageQuizzes = () => {
                                             <Button
                                                 variant="primary"
                                                 size="sm"
+                                                className={styles.actionButton}
                                                 onClick={() => setViewQuizId(quiz.quizId)}
                                             >
                                                 View Quiz

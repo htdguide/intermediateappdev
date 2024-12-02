@@ -1,0 +1,54 @@
+.quizContainer {
+    margin-top: 20px;
+    padding: 20px;
+    background: #f9f9f9;
+    border-radius: 15px;
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+}
+
+.pageTitle {
+    font-size: 2rem;
+    font-weight: bold;
+    color: #007bff;
+    margin-bottom: 30px;
+}
+
+.spinnerContainer {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 50vh;
+}
+
+.loadingMessage {
+    font-size: 1.2rem;
+    color: #6c757d;
+}
+
+.alert {
+    margin-bottom: 20px;
+}
+
+.sectionTitle {
+    margin-top: 40px;
+    font-size: 1.5rem;
+    font-weight: bold;
+}
+
+.quizCard {
+    border-radius: 10px;
+    transition: transform 0.3s ease;
+}
+
+.quizCard:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 15px rgba(0, 0, 0, 0.2);
+}
+
+.noQuizzesMessage {
+    margin-top: 10px;
+    font-size: 1rem;
+    color: #6c757d;
+    font-style: italic;
+}

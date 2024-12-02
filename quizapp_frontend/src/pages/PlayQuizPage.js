@@ -1,7 +1,8 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useParams } from 'react-router-dom';
-import { Container, Row, Col, Card, Form, Button, Alert } from 'react-bootstrap';
+import { Container, Row, Col, Card, Form, Button, Alert, Spinner } from 'react-bootstrap';
 import { getQuizQuestions, validateAndSaveQuizSubmission } from '../services/api';
+import styles from '../styles/PlayQuizPage.module.css';
 
 // Utility function to shuffle an array
 const shuffleArray = (array) => {
@@ -13,42 +14,34 @@ const shuffleArray = (array) => {
 };
 
 function PlayQuizPage() {
-    const { quizId } = useParams(); // Get quizId from URL parameters
-    const user = JSON.parse(localStorage.getItem('user')); // Logged-in user data
+    const { quizId } = useParams();
+    const user = JSON.parse(localStorage.getItem('user'));
     const [questions, setQuestions] = useState([]);
     const [userAnswers, setUserAnswers] = useState({});
     const [score, setScore] = useState(null);
-    const [feedback, setFeedback] = useState([]); // Store feedback for incorrect answers
-    const [loading, setLoading] = useState(true); // Loading state
-    const [error, setError] = useState(''); // For displaying error messages
-    const [quizSubmitted, setQuizSubmitted] = useState(false); // Track if the quiz has been submitted
+    const [feedback, setFeedback] = useState([]);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState('');
+    const [quizSubmitted, setQuizSubmitted] = useState(false);
 
-    // Fetch quiz questions
     const fetchQuizQuestions = useCallback(async () => {
         try {
-            console.log(`Fetching questions for quiz ID: ${quizId}`);
             const fetchedQuestions = await getQuizQuestions(quizId);
-
             if (!fetchedQuestions || fetchedQuestions.length === 0) {
                 throw new Error('No questions found for this quiz.');
             }
-
-            // Map questions and shuffle options
             const formattedQuestions = fetchedQuestions.map((item) => {
-                const shuffledOptions = shuffleArray(item.options); // Shuffle options array
+                const shuffledOptions = shuffleArray(item.options);
                 return {
                     ...item,
-                    shuffledOptions, // Add shuffled options to the question object
+                    shuffledOptions,
                 };
             });
-
-            setQuestions(formattedQuestions); // Set formatted questions to state
-            console.log('Fetched and formatted quiz questions:', formattedQuestions); // Log formatted questions
+            setQuestions(formattedQuestions);
         } catch (error) {
-            console.error('Error fetching quiz questions:', error);
             setError('Failed to load quiz questions.');
         }
-    }, [quizId]); // Dependency on quizId ensures it updates if quizId changes
+    }, [quizId]);
 
     useEffect(() => {
         const initializePage = async () => {
@@ -61,7 +54,6 @@ function PlayQuizPage() {
     }, [fetchQuizQuestions]);
 
     const handleOptionChange = (questionId, selectedOption) => {
-        console.log(`Selected option for question ID ${questionId}: ${selectedOption}`);
         setUserAnswers((prevAnswers) => ({
             ...prevAnswers,
             [questionId]: selectedOption,
@@ -69,9 +61,6 @@ function PlayQuizPage() {
     };
 
     const handleSubmitQuiz = async () => {
-        console.log('Submitting quiz...');
-
-        // Check if all questions are answered
         const unansweredQuestions = questions.filter(
             (question) => !userAnswers[question.questionId]
         );
@@ -81,60 +70,59 @@ function PlayQuizPage() {
             return;
         }
 
-        // Prepare submission payload
         const quizSubmission = {
             quizId: Number(quizId),
             userId: user.userId,
-            answers: userAnswers, // This is the map of questionId -> selectedOption
+            answers: userAnswers,
         };
 
         try {
-            console.log('Validating and saving quiz submission...');
             const validationResult = await validateAndSaveQuizSubmission(quizSubmission);
-
-            // Update score and feedback
-            console.log('Validation Result:', validationResult);
             setScore(validationResult.score);
-            setFeedback(validationResult.feedback); // Set feedback for questions
-            setQuizSubmitted(true); // Mark quiz as submitted
+            setFeedback(validationResult.feedback);
+            setQuizSubmitted(true);
         } catch (error) {
-            console.error('Error submitting quiz:', error);
             setError('Error submitting your quiz. Please try again later.');
         }
     };
 
     if (loading) {
-        return <p>Loading quiz...</p>;
+        return (
+            <div className={styles.loaderContainer}>
+                <Spinner animation="border" variant="primary" />
+                <p className="mt-3">Loading quiz...</p>
+            </div>
+        );
     }
 
     if (error) {
-        return <Alert variant="danger" className="mt-4">{error}</Alert>;
+        return <Alert variant="danger" className={`mt-4 ${styles.errorAlert}`}>{error}</Alert>;
     }
 
     return (
-        <Container className="mt-5">
+        <Container className={`mt-5 ${styles.quizContainer}`}>
             {score !== null && (
                 <Row className="justify-content-center mb-4">
-                    <Col md={8} className="text-center">
+                    <Col md={8} className={`text-center ${styles.scoreSection}`}>
                         <h2>Your Score: {score} / {questions.length}</h2>
                     </Col>
                 </Row>
             )}
             <Row className="justify-content-center">
                 <Col md={8}>
-                    <h3 className="text-center mb-4">Quiz Questions</h3>
+                    <h3 className={`text-center mb-4 ${styles.quizTitle}`}>Quiz Questions</h3>
                     <Form>
                         {questions.map((question, index) => {
                             const feedbackItem = feedback.find(
                                 (item) => item.questionId === question.questionId
                             );
                             return (
-                                <Card key={question.questionId} className="mb-4">
+                                <Card key={question.questionId} className={`mb-4 ${styles.questionCard}`}>
                                     <Card.Body>
                                         <Card.Title>
                                             Question {index + 1}: {question.text}
                                         </Card.Title>
-                                        <div className="mt-3">
+                                        <div className={`mt-3 ${styles.optionsContainer}`}>
                                             {question.shuffledOptions.map((option, idx) => {
                                                 const isSelected = userAnswers[question.questionId] === option;
                                                 const isCorrect = feedbackItem?.correctAnswer === option;
@@ -153,9 +141,9 @@ function PlayQuizPage() {
                                                         checked={isSelected}
                                                         className={`${
                                                             isWrongSelected
-                                                                ? 'text-danger'
+                                                                ? styles.wrongOption
                                                                 : isCorrect && quizSubmitted
-                                                                ? 'text-success'
+                                                                ? styles.correctOption
                                                                 : ''
                                                         }`}
                                                     />
@@ -163,7 +151,7 @@ function PlayQuizPage() {
                                             })}
                                         </div>
                                         {quizSubmitted && feedbackItem && !feedbackItem.correct && (
-                                            <div className="mt-3 text-success">
+                                            <div className={`mt-3 ${styles.correctAnswer}`}>
                                                 <strong>Correct Answer:</strong> {feedbackItem.correctAnswer}
                                             </div>
                                         )}

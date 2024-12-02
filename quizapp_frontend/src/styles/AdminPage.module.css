@@ -1,0 +1,51 @@
+.adminContainer {
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+    background: #f8f9fa;
+    padding: 20px;
+}
+
+.adminTitle {
+    font-size: 2rem;
+    font-weight: bold;
+    color: #007bff;
+    text-align: center;
+    margin-bottom: 20px;
+}
+
+.greeting {
+    font-size: 1.25rem;
+    text-align: center;
+    color: #495057;
+}
+
+.topNav {
+    margin-bottom: 20px;
+    background: #ffffff;
+    border-radius: 5px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    justify-content: center;
+}
+
+.tabLink {
+    font-weight: bold;
+    color: #007bff;
+    padding: 10px 20px;
+    text-align: center;
+    transition: color 0.3s, background 0.3s;
+}
+
+.tabLink.active {
+    color: #ffffff;
+    background: #007bff;
+    border-radius: 5px;
+}
+
+.tabContent {
+    flex: 1;
+    background: #ffffff;
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+}

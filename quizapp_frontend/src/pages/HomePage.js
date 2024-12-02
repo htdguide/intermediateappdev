@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Button, Row, Col, Container, Carousel } from 'react-bootstrap';
 import { Link } from 'react-router-dom';
 import styles from '../styles/HomePage.module.css';
@@ -9,46 +9,64 @@ import teamwork from "../assets/HomePage/teamwork.jpg";
 import leaderboard from "../assets/HomePage/leaderboard.jpg";
 import certificate from "../assets/HomePage/certificate.jpg";
 
-
 function HomePage() {
+  const [animatedText, setAnimatedText] = useState('');
+  const textToAnimate = 'Discover Quizzes, Challenge Yourself, Master Knowledge!';
+
+  useEffect(() => {
+    let index = 0;
+    const interval = setInterval(() => {
+      if (index < textToAnimate.length) {
+        setAnimatedText((prev) => prev + textToAnimate[index]);
+        index++;
+      } else {
+        clearInterval(interval);
+      }
+    }, 100); // Adjust the speed of animation here
+    return () => clearInterval(interval);
+  }, []);
+
   return (
     <div className={styles.background}>
       {/* Hero Section */}
       <Container fluid className={styles.heroSection}>
         <Row className="justify-content-center text-center">
-          <Col md={8} className={styles.col}>
-            <h1 className={`text-primary ${styles.title}`}>Welcome to QuizApp</h1>
-            <p className={`text-secondary ${styles.subtitle}`}>
-              Your ultimate quiz platform to create, manage, and play quizzes. Test your
-              knowledge and improve your skills!
-            </p>
-            <div className={`mt-4 ${styles.buttonContainer}`}>
-              <Button
-                as={Link}
-                to="/user"
-                variant="primary"
-                className={`mx-2 ${styles.button}`}
-              >
-                Play Quizzes
-              </Button>
-              <Button
-                as={Link}
-                to="/login"
-                variant="secondary"
-                className={`mx-2 ${styles.button}`}
-              >
-                Login
-              </Button>
-              <Button
-                as={Link}
-                to="/register"
-                variant="success"
-                className={`mx-2 ${styles.button}`}
-              >
-                Register
-              </Button>
+          <Col md={12} className={styles.col}>
+            <div className={styles.textContainer}>
+              <h1 className={`text-primary ${styles.title}`}>{animatedText}</h1>
+              <p className={`text-secondary ${styles.subtitle}`}>
+                Your ultimate quiz platform to create, manage, and play quizzes. Test your
+                knowledge and improve your skills!
+              </p>
+              <div className={`mt-4 ${styles.buttonContainer}`}>
+                <Button
+                  as={Link}
+                  to="/user"
+                  variant="primary"
+                  className={`mx-2 ${styles.button}`}
+                >
+                  Play Quizzes
+                </Button>
+                <Button
+                  as={Link}
+                  to="/login"
+                  variant="secondary"
+                  className={`mx-2 ${styles.button}`}
+                >
+                  Login
+                </Button>
+                <Button
+                  as={Link}
+                  to="/register"
+                  variant="success"
+                  className={`mx-2 ${styles.button}`}
+                >
+                  Register
+                </Button>
+              </div>
             </div>
           </Col>
+
         </Row>
       </Container>
 

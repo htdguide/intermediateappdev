@@ -1,0 +1,78 @@
+.dashboardContainer {
+    margin-top: 20px;
+    padding: 20px;
+    background: linear-gradient(135deg, #f8f9fa, #e9ecef);
+    border-radius: 15px;
+    box-shadow: 0 15px 25px rgba(0, 0, 0, 0.1);
+  }
+  
+  .dashboardTitle {
+    font-size: 2.5rem;
+    color: #007bff;
+    font-weight: bold;
+    margin-bottom: 30px;
+  }
+  
+  .summaryCard {
+    background: #ffffff;
+    border: none;
+    border-radius: 10px;
+    box-shadow: 0 5px 10px rgba(0, 0, 0, 0.1);
+    text-align: center;
+  }
+  
+  .cardTitle {
+    font-size: 1.5rem;
+    font-weight: bold;
+    color: #007bff;
+    margin-bottom: 15px;
+  }
+  
+  .playQuizButton {
+    margin-top: 15px;
+    padding: 10px 15px;
+    font-size: 1rem;
+    background: #007bff;
+    border: none;
+    color: #fff;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+  }
+  
+  .playQuizButton:hover {
+    background-color: #0056b3;
+  }
+  
+  .chartContainer {
+    background: #ffffff;
+    border-radius: 15px;
+    padding: 20px;
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+  }
+  
+  .chartTitle {
+    font-size: 1.25rem;
+    font-weight: bold;
+    color: #495057;
+    margin-bottom: 15px;
+  }
+  
+  .chart {
+    max-height: 400px;
+  }
+  
+
+@media (max-width: 768px) {
+    .dashboardTitle {
+        font-size: 2rem;
+    }
+
+    .summaryCard {
+        margin-bottom: 20px;
+    }
+
+    .chart {
+        max-height: 300px;
+    }
+}

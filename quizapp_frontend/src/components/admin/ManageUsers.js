@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Table, Button, Spinner, Alert } from 'react-bootstrap';
 import { getAllUsers, saveUser, updateUserById, deleteUserById } from '../../services/adminApi';
 import UserModal from './UserModal';
+import styles from './ManageUsers.module.css';
 
 const ManageUsers = () => {
     const [users, setUsers] = useState([]);
@@ -41,9 +42,9 @@ const ManageUsers = () => {
 
     const handleEditUser = async (userData) => {
         try {
-            await updateUserById(selectedUser.userId, userData); // Use `userId` instead of `id`
+            await updateUserById(selectedUser.userId, userData);
             setShowModal(false);
-            fetchUsers(); // Refresh the user list after update
+            fetchUsers();
         } catch (err) {
             setError('Failed to update user.');
             console.error(err);
@@ -75,17 +76,19 @@ const ManageUsers = () => {
     };
 
     return (
-        <div>
-            <h3>Manage Users</h3>
+        <div className={styles.manageUsersContainer}>
+            <h3 className={styles.title}>Manage Users</h3>
             {error && <Alert variant="danger">{error}</Alert>}
             {loading ? (
-                <Spinner animation="border" />
+                <div className="text-center">
+                    <Spinner animation="border" variant="primary" />
+                </div>
             ) : (
-                <div>
-                    <Button variant="primary" className="mb-3" onClick={openCreateModal}>
+                <>
+                    <Button variant="primary" className={`mb-3 ${styles.addButton}`} onClick={openCreateModal}>
                         Add User
                     </Button>
-                    <Table bordered hover>
+                    <Table bordered hover responsive className={styles.userTable}>
                         <thead>
                             <tr>
                                 <th>#</th>
@@ -108,7 +111,7 @@ const ManageUsers = () => {
                                         <Button
                                             variant="info"
                                             size="sm"
-                                            className="me-2"
+                                            className={`me-2 ${styles.actionButton}`}
                                             onClick={() => openEditModal(user)}
                                         >
                                             Edit
@@ -116,6 +119,7 @@ const ManageUsers = () => {
                                         <Button
                                             variant="danger"
                                             size="sm"
+                                            className={styles.actionButton}
                                             onClick={() => handleDeleteUser(user.userId)}
                                         >
                                             Delete
@@ -124,9 +128,8 @@ const ManageUsers = () => {
                                 </tr>
                             ))}
                         </tbody>
-
                     </Table>
-                </div>
+                </>
             )}
             <UserModal
                 show={showModal}
